@@ -24,6 +24,7 @@ Voir `ADR-template.md` pour le squelette à dupliquer.
 | 007 | Module Insights séparé en CQRS pour le read-side analytics | Accepté |
 | 008 | PostgreSQL + Flyway + Testcontainers pour le data layer | Accepté |
 | 009 | Stratégie de gestion des versions de dépendances | Accepté |
+| 010 | Structure monorepo symétrique (backend/ + frontend/) | Accepté |
 
 ## Règles
 

@@ -1,38 +1,11 @@
-# ===== Java / Maven =====
-target/
-!.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
-*.class
-*.jar
-*.war
-*.ear
-*.log
-hs_err_pid*
-replay_pid*
-.mvn/timing.properties
-.mvn/wrapper/maven-wrapper.properties
+# .gitignore racine — règles transverses uniquement.
+# Les règles spécifiques vivent dans backend/.gitignore et frontend/.gitignore.
 
-# ===== Node / Angular (frontend/) =====
-node_modules/
-frontend/dist/
-frontend/.angular/
-frontend/coverage/
-npm-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# ===== Build & test artifacts =====
-*.tsbuildinfo
-coverage/
-.nyc_output/
-
-# ===== Environnement / secrets =====
+# ===== Environnement / secrets (repo-wide) =====
 .env
 .env.local
 .env.*.local
 *.local.yml
-application-local-secrets.yml
 
 # ===== IDE — IntelliJ IDEA =====
 .idea/
@@ -43,16 +16,13 @@ out/
 
 # ===== IDE — VS Code =====
 .vscode/*
-!.vscode/settings.json.example
 !.vscode/extensions.json
 
-# ===== macOS =====
+# ===== macOS / OS =====
 .DS_Store
 .AppleDouble
 .LSOverride
 ._*
-
-# ===== Divers OS / outils =====
 *.swp
 *.swo
 Thumbs.db

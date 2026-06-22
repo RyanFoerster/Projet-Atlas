@@ -1,0 +1,17 @@
+# .gitignore backend — Java / Maven.
+
+# ===== Build Maven =====
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+hs_err_pid*
+replay_pid*
+
+# Note : le Maven wrapper (mvnw, mvnw.cmd, .mvn/wrapper/maven-wrapper.properties)
+# DOIT être versionné — on ne l'ignore donc pas.
+
+# ===== Secrets locaux backend =====
+application-local-secrets.yml

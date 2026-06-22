@@ -88,6 +88,22 @@ Atlas est un **jeu de coaching fitness type Football Manager** où le joueur dir
 | **progression** | XP coach, achievements, prestige (léger en MVP) | CoachProgress |
 | **insights** | Read-side analytics, dashboards joueur (CQRS) | Projections diverses |
 
+### Structure physique du dépôt (monorepo symétrique)
+
+Le dépôt est un **monorepo** avec un sous-dossier par application (cf. ADR-010) :
+
+```
+atlas/
+├── backend/            # application Spring Boot — racine Maven (backend/pom.xml + Maven wrapper ./mvnw)
+├── frontend/           # application Angular 22
+├── docs/               # vision, glossaire, ADRs, sprints, learning (contexte global)
+├── scripts/            # scripts dev (dev-start.sh, db-reset.sh)
+├── docker-compose.yml  # PostgreSQL local pour le dev
+└── CLAUDE.md           # ce document
+```
+
+Toutes les commandes Maven se lancent depuis `backend/` (`cd backend && ./mvnw …`), les commandes npm depuis `frontend/`.
+
 ### Structure de packages standard pour chaque module
 
 ```
@@ -300,6 +316,8 @@ Plan global des sprints (révisable) :
 ---
 
 ## 8. Pour démarrer une session Claude Code
+
+> **Localisation du code** : le code backend (Spring Boot) vit dans `backend/`, le frontend (Angular) dans `frontend/`. La doc, les ADRs et les sprints restent à la racine sous `docs/`. Les commandes Maven se lancent via `./mvnw` depuis `backend/`. Voir ADR-010 pour la structure monorepo.
 
 Quand tu (Claude Code) démarres une session sur Atlas, vérifie dans cet ordre :
 
