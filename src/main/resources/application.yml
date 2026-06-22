@@ -1,0 +1,42 @@
+# ==========================================================================
+# Configuration de base (commune à tous les profils)
+# Les blocs spécifiques par profil (local / test / prod) sont définis plus bas.
+# La configuration DataSource / Flyway sera ajoutée à l'étape 3 (data layer).
+# ==========================================================================
+spring:
+  application:
+    name: atlas
+  # Profil actif par défaut en l'absence de SPRING_PROFILES_ACTIVE
+  profiles:
+    default: local
+
+server:
+  port: 8080
+
+---
+# ==========================================================================
+# Profil LOCAL — développement sur la machine du dev
+# ==========================================================================
+spring:
+  config:
+    activate:
+      on-profile: local
+
+---
+# ==========================================================================
+# Profil TEST — exécution des tests (Testcontainers fournira la DB, étape 3)
+# ==========================================================================
+spring:
+  config:
+    activate:
+      on-profile: test
+
+---
+# ==========================================================================
+# Profil PROD — déploiement sur le VPS (Dokploy)
+# Logs structurés JSON et DataSource seront configurés aux étapes dédiées.
+# ==========================================================================
+spring:
+  config:
+    activate:
+      on-profile: prod
