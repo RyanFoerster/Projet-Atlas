@@ -13,6 +13,23 @@ spring:
 server:
   port: 8080
 
+# Actuator : on expose explicitement health + info (pas tout, par principe de moindre exposition)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: when-authorized
+
+# springdoc-openapi : doc API auto-générée + Swagger UI
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
 ---
 # ==========================================================================
 # Profil LOCAL — développement sur la machine du dev
