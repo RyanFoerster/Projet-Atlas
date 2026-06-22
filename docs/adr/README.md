@@ -1,0 +1,32 @@
+# Architecture Decision Records
+
+Ce dossier contient les **Architecture Decision Records** (ADRs) du projet Atlas. Chaque ADR documente une décision structurante : son contexte, les alternatives envisagées, la décision retenue, et ses conséquences.
+
+## Format
+
+Les ADRs suivent le format Michael Nygard, condensé pour rester lisibles (~1 page chacun) :
+- **Contexte** : pourquoi cette décision est nécessaire
+- **Décision** : ce qui est retenu
+- **Conséquences** : positives, négatives, neutres
+
+Voir `ADR-template.md` pour le squelette à dupliquer.
+
+## Liste des ADRs
+
+| # | Titre | Statut |
+|---|-------|--------|
+| 001 | Architecture en Modular Monolith avec Spring Modulith | Accepté |
+| 002 | Stack technique Java 25 + Spring Boot 4.1 + Angular 22 | Accepté |
+| 003 | DDD tactique avec domaine pur (zéro dépendance framework) | Accepté |
+| 004 | Modèle Fitness-Fatigue de Banister par groupe musculaire | Accepté |
+| 005 | Lien IRL ↔ jeu via athlète miroir et déblocage de programmes | Accepté |
+| 006 | Lazy compute pour la game loop idle | Accepté |
+| 007 | Module Insights séparé en CQRS pour le read-side analytics | Accepté |
+| 008 | PostgreSQL + Flyway + Testcontainers pour le data layer | Accepté |
+
+## Règles
+
+- Toute décision structurante (architecture, choix de lib majeure, pattern transversal) doit avoir son ADR.
+- Un ADR ne se modifie pas une fois "Accepté" — on en crée un nouveau qui le "Remplace" si la décision change.
+- Numérotation séquentielle, jamais réutilisée.
+- L'ADR est rédigé **avant** ou **pendant** l'implémentation, jamais après coup.
