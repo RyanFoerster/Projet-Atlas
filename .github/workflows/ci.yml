@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+# Annule un run en cours si un nouveau commit arrive sur la même réf.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend (Maven · Modulith · Testcontainers)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      # clean verify = compile + Spring Modulith verify + tests d'intégration Testcontainers.
+      # Les runners ubuntu ont Docker préinstallé : Testcontainers démarre son propre PostgreSQL,
+      # aucun service `postgres` à déclarer ici.
+      - name: Build, verify modules and run tests
+        run: ./mvnw --batch-mode --no-transfer-progress clean verify
+
+  frontend:
+    name: Frontend (Angular 22 · build · Vitest)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test -- --watch=false
+
+  # Point d'agrégation unique pour la future branch protection sur main.
+  ci-success:
+    name: CI success
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - name: All jobs passed
+        run: echo "Backend and frontend CI jobs passed."
