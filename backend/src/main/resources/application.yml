@@ -30,6 +30,12 @@ management:
     web:
       exposure:
         include: health, info
+      # CORS pour le frontend Angular en dev (localhost:4200) — l'endpoint /actuator/health
+      # est appelé en cross-origin par la page Hello world. Les futurs endpoints /api auront
+      # leur propre config CORS (WebMvc) au sprint 1.
+      cors:
+        allowed-origins: "http://localhost:4200"
+        allowed-methods: GET
   endpoint:
     health:
       show-details: when-authorized
