@@ -3,10 +3,10 @@
 > Éléments à traiter au moment de clôturer le sprint (livrables documentaires de la Definition of Done + demandes spécifiques de Ryan accumulées en cours de route).
 
 ## Livrables DoD restants
-- [ ] Devblog post `docs/blog/01-demarrage-atlas.md`
-- [ ] Mini-cours `docs/learning/sprint-00-bootstrap.md`
-- [ ] `RETROSPECTIVE.md` du sprint
-- [ ] Récap pédagogique de fin de session
+- [x] Devblog post `docs/blog/01-demarrage-atlas.md`
+- [x] Mini-cours `docs/learning/sprint-00-bootstrap.md` (11 concepts couverts)
+- [x] `RETROSPECTIVE.md` du sprint
+- [x] Récap pédagogique de fin de session (produit en chat, format A de CLAUDE.md §6)
 
 ## Demandes spécifiques à intégrer dans le mini-cours `sprint-00-bootstrap.md`
 
