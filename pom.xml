@@ -23,7 +23,17 @@
         <!-- Libs hors écosystème Spring : pinnées explicitement (ADR-009, règle 2) -->
         <spring-modulith.version>2.1.0</spring-modulith.version>
         <springdoc.version>3.0.3</springdoc.version>
-        <!-- mapstruct sera ajouté à l'étape data layer -->
+        <!-- mapstruct sera ajouté au sprint 1 (mapping domaine↔JPA, pas d'entité avant) -->
+
+        <!-- Versions héritées du BOM Boot 4.1, figées pour traçabilité (ADR-009, règle 3) -->
+        <flyway.version>12.4.0</flyway.version>
+        <postgresql.version>42.7.11</postgresql.version>
+        <testcontainers.version>2.0.5</testcontainers.version>
+
+        <!-- SOURCE DE VÉRITÉ unique de la version PostgreSQL.
+             Consommée par : Testcontainers (via systemPropertyVariables surefire ci-dessous)
+             et docker-compose.yml (via les scripts scripts/*.sh qui font `mvn help:evaluate`). -->
+        <postgres.image.version>17</postgres.image.version>
     </properties>
 
     <dependencyManagement>
@@ -65,6 +75,30 @@
             <version>${springdoc.version}</version>
         </dependency>
 
+        <!-- Data layer : JPA + Hibernate (versions gérées/figées via BOM, ADR-008) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <!-- Flyway : migrations versionnées (ADR-008).
+             En Boot 4.x l'auto-configuration vit dans un module dédié, tiré par ce starter
+             (et non par flyway-core seul). Flyway 12 est modulaire : le support Postgres
+             est dans un artefact séparé (flyway-database-postgresql). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
+        <!-- Driver JDBC PostgreSQL -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- Tests -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -82,6 +116,19 @@
             <artifactId>spring-modulith-docs</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Testcontainers : tests d'intégration sur un vrai PostgreSQL, jamais H2 (ADR-008).
+             En Testcontainers 2.x les modules sont préfixés `testcontainers-` (1.x : `postgresql`). -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- Support @ServiceConnection : auto-config de la DataSource depuis le container -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -89,6 +136,17 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <!-- Passe la version PostgreSQL (source de vérité unique) aux tests,
+                 pour que Testcontainers utilise la même image que docker-compose. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <postgres.image.version>${postgres.image.version}</postgres.image.version>
+                    </systemPropertyVariables>
+                </configuration>
             </plugin>
         </plugins>
     </build>

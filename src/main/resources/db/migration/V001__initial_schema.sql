@@ -1,0 +1,5 @@
+-- V001__initial_schema.sql
+-- Baseline migration: intentionally empty.
+-- Purpose: validates the Flyway pipeline (config, history table creation,
+-- execution at boot). First business table arrives in V002__create_users_table.sql
+-- at Sprint 1 with the User aggregate. See ADR-008.

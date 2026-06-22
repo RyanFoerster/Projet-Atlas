@@ -1,0 +1,28 @@
+# PostgreSQL local pour le développement (ADR-008).
+#
+# ⚠️ Version PostgreSQL — SOURCE DE VÉRITÉ unique = pom.xml <postgres.image.version>.
+#    Les scripts scripts/dev-start.sh et scripts/db-reset.sh injectent cette version
+#    dans POSTGRES_VERSION (via `mvn help:evaluate`) avant de lancer compose.
+#    Le défaut `:-17` ci-dessous ne sert qu'au `docker compose up` lancé à la main :
+#    il DOIT rester aligné avec la propriété du pom. Testcontainers lit la même
+#    propriété (voir AbstractIntegrationTest.java).
+services:
+  postgres:
+    image: postgres:${POSTGRES_VERSION:-17}
+    container_name: atlas-postgres
+    environment:
+      POSTGRES_DB: atlas
+      POSTGRES_USER: atlas
+      POSTGRES_PASSWORD: atlas
+    ports:
+      - "5432:5432"
+    volumes:
+      - atlas-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U atlas -d atlas"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  atlas-postgres-data:
