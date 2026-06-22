@@ -1,6 +1,6 @@
 # ADR-002 : Stack technique Java 25 + Spring Boot 4.1 + Angular 22
 
-**Statut** : Accepté
+**Statut** : Révisé sprint 0
 **Date** : Sprint 0
 **Décideur** : Ryan Foerster
 
@@ -58,3 +58,22 @@ Le projet utilise les versions suivantes, pinées dans le `pom.xml` et `package.
 
 **Neutres**
 - Choix de Maven plutôt que Gradle : préférence enterprise, plus de stabilité, écosystème mieux établi. Gradle aurait été défendable aussi.
+
+## Révisions
+
+### Révision sprint 0 — corrections de versions (vérifiées sur Maven Central)
+
+Au moment d'écrire le `pom.xml`, plusieurs versions pinées dans la décision initiale se sont révélées incompatibles avec Spring Boot 4.1 (qui impose, via son BOM `spring-boot-dependencies`, des versions plus récentes). Les versions ont été vérifiées comme **réellement publiées et compatibles** sur Maven Central. Corrections appliquées :
+
+| Dépendance | Version initiale (erronée) | Version retenue | Raison |
+|------------|----------------------------|-----------------|--------|
+| Spring Modulith | « dernière compatible » (non figée) | **2.1.0** | La ligne 2.1 est alignée sur Boot 4.1 (la 2.0 vise Boot 4.0, la 1.x vise Boot 3). |
+| springdoc-openapi | 2.7.x | **3.0.3** | La ligne 2.x ne supporte que Spring Framework 6 / Boot 3. La ligne **3.0** est celle qui cible Spring Framework 7 / Boot 4. |
+| Flyway | 11.x | **12.4.0** | Version gérée par le BOM Boot 4.1. Pinner 11.x risquait l'incompatibilité. |
+| Hibernate | 7.2.x | **7.4.1.Final** | Version gérée par le BOM Boot 4.1. |
+| Testcontainers | 1.20.x | **2.0.5** | Version gérée par le BOM Boot 4.1 (saut majeur 1.x → 2.x). |
+| PostgreSQL (driver JDBC) | non précisée | **42.7.11** | Version gérée par le BOM Boot 4.1. |
+| MapStruct | 1.6.x | **1.6.3** | Dernier patch de la ligne 1.6 (conforme). |
+| jqwik | présent dès sprint 0 | **différé au sprint 4** | Bâti sur l'ancien JUnit Platform 1.x ; compat avec JUnit Platform 6 (amené par Boot 4.1) à revérifier. Non utilisé avant les tests de domaine du sprint 4. |
+
+La **stratégie générale** de gestion de ces versions (hériter du BOM vs pinner explicitement, et figer les versions héritées dans `<properties>` pour la traçabilité) est formalisée dans **ADR-009**.

@@ -24,15 +24,17 @@ Atlas est un **jeu de coaching fitness type Football Manager** où le joueur dir
 
 ### Backend
 - **Java 25 LTS** (sortie sept 2025)
-- **Spring Boot 4.1.x** (basée Spring Framework 7)
-- **Spring Modulith** (vérification d'isolation des modules, event publication registry)
+- **Spring Boot 4.1.0** (basée Spring Framework 7)
+- **Spring Modulith 2.1.x** (vérification d'isolation des modules, event publication registry — ligne 2.1 alignée sur Boot 4.1)
 - **Spring Security 7.0.x** + JWT ou session selon décision sprint 1
-- **Spring Data JPA** + **Hibernate 7.2.x**
-- **PostgreSQL 17** comme base de données
-- **Flyway 11.x** pour les migrations
-- **MapStruct 1.6.x** pour les conversions entité↔domaine
-- **springdoc-openapi 2.7.x** pour la doc API auto-générée
+- **Spring Data JPA** + **Hibernate 7.4.x** (hérité du BOM Boot 4.1)
+- **PostgreSQL 17** comme base de données (driver JDBC 42.7.x, hérité du BOM)
+- **Flyway 12.4.x** pour les migrations (hérité du BOM Boot 4.1)
+- **MapStruct 1.6.3** pour les conversions entité↔domaine
+- **springdoc-openapi 3.0.x** pour la doc API auto-générée (la ligne 3.0 cible Spring Framework 7 ; la 2.x ne supporte que Boot 3)
 - **Maven** comme build tool
+
+> Note versions : les versions exactes et la stratégie de pinnage sont décrites dans ADR-002 (révisé sprint 0) et ADR-009. Principe : hériter du BOM `spring-boot-dependencies` pour l'écosystème Spring, figer ces versions dans `<properties>` pour la traçabilité, pinner explicitement les libs hors écosystème (Modulith, springdoc, MapStruct).
 
 ### Frontend
 - **Angular 22** (signals-first, zoneless par défaut, selectorless components, signal forms)
@@ -41,10 +43,10 @@ Atlas est un **jeu de coaching fitness type Football Manager** où le joueur dir
 - Composants custom, pas de lib UI lourde
 
 ### Tests
-- **JUnit 5** + **AssertJ** pour les assertions lisibles
+- **JUnit Jupiter 6.x** + **AssertJ** pour les assertions lisibles (hérité du BOM Boot 4.1)
 - **Mockito** uniquement quand strictement nécessaire (préférer les fakes/stubs dans le domaine pur)
-- **jqwik** pour les property-based tests sur le domaine
-- **Testcontainers 1.20.x** avec PostgreSQL réel (pas H2)
+- **jqwik** pour les property-based tests sur le domaine — **introduit au Sprint 4** (compat à revérifier avec JUnit Platform 6, voir note Sprint 4)
+- **Testcontainers 2.0.x** avec PostgreSQL réel (pas H2 — hérité du BOM Boot 4.1, saut majeur 1.x→2.x)
 - **Spring Modulith Test** pour les tests d'intégration par module
 - **Vitest** comme test runner Angular (par défaut depuis v21)
 
