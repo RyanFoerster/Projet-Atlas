@@ -30,7 +30,7 @@ Atlas est un **jeu de coaching fitness type Football Manager** où le joueur dir
 - **Spring Data JPA** + **Hibernate 7.4.x** (hérité du BOM Boot 4.1)
 - **PostgreSQL 17** comme base de données (driver JDBC 42.7.x, hérité du BOM)
 - **Flyway 12.4.x** pour les migrations (hérité du BOM Boot 4.1)
-- **MapStruct 1.6.3** pour les conversions entité↔domaine
+- **MapStruct 1.6.3** pour les conversions à la frontière **application↔DTO web** (objets anémiques par design). **Pas** pour la frontière domain↔JPA : un aggregate riche (constructeurs privés, accesseurs record-style, value objects, invariants au constructeur) est l'anti-bean de MapStruct — on y utilise des **mappers manuels** (réhydratation via `reconstitute()`). Voir ADR-015. Introduit concrètement au Sprint 6 (controllers REST).
 - **springdoc-openapi 3.0.x** pour la doc API auto-générée (la ligne 3.0 cible Spring Framework 7 ; la 2.x ne supporte que Boot 3)
 - **Maven** comme build tool
 

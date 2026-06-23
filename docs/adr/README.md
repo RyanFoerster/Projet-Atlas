@@ -26,6 +26,7 @@ Voir `ADR-template.md` pour le squelette à dupliquer.
 | 009 | Stratégie de gestion des versions de dépendances | Accepté |
 | 010 | Structure monorepo symétrique (backend/ + frontend/) | Accepté |
 | 014 | UUID v7 pour les aggregates + libs purement utilitaires autorisées dans le domaine | Accepté |
+| 015 | Stratégie de mapping aggregate ↔ persistence (mappers manuels, MapStruct pour les DTO) | Accepté |
 
 ## Règles
 
