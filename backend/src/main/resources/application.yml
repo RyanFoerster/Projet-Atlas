@@ -47,6 +47,17 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
 
+# Atlas — config applicative (ADR-013)
+atlas:
+  frontend:
+    # Base de l'URL du frontend, utilisée pour construire le lien magique. Surchargée en prod.
+    base-url: http://localhost:4200
+  email:
+    from: "Atlas <onboarding@resend.dev>"
+    resend:
+      # Clé d'API Resend : fournie par variable d'env en prod, vide ailleurs (LogOnly n'en a pas besoin).
+      api-key: ${RESEND_API_KEY:}
+
 ---
 # ==========================================================================
 # Profil LOCAL — développement sur la machine du dev
@@ -79,3 +90,8 @@ spring:
   config:
     activate:
       on-profile: prod
+
+# En prod, le lien magique pointe vers le vrai domaine du frontend (variable d'env).
+atlas:
+  frontend:
+    base-url: ${ATLAS_FRONTEND_BASE_URL:https://atlas.example}
