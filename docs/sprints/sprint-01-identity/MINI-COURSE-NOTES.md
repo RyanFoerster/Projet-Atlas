@@ -54,9 +54,18 @@
 - **Vécu réel** : la 1re référence inter-module (`identity` → `shared.domain.exceptions.DomainException`)
   a fait ÉCHOUER `modules.verify()` avec « depends on non-exposed type ». Marquer shared OPEN règle ça.
 - Contrepartie : le kernel doit rester minimal (un kernel qui grossit = couplage global déguisé).
-- ⚠️ À soumettre à Ryan au gate S5 : est-ce que ce choix mérite un ADR dédié, ou la JavaDoc du
-  package-info + cette note suffisent ? (C'est une implémentation de la décision kernel déjà actée,
-  pas une nouvelle décision — mais traçabilité à confirmer.)
+- **Formalisé dans ADR-017** : OPEN vs CLOSED, pourquoi shared est l'exception légitime, règle des
+  2 critères (transverse 2+ modules ET fondamental), et règle anti-dérive (aucun autre module OPEN
+  sans nouvel ADR).
+
+## 10. Logout : pas de use case applicatif (décision réversible)
+- `LogoutUseCase` volontairement NON créé : le logout n'a aucune logique métier propre — c'est
+  invalider la session HTTP + supprimer le cookie, une affaire purement Spring Security (S6,
+  `SecurityConfig` / handler de logout). Créer un use case applicatif vide serait du bruit.
+- **Réversible** : si un jour un event `PlayerLoggedOut` devient utile (insights, achievements de
+  streak, audit de session…), on introduira alors un vrai use case qui publie l'event. La décision
+  est bonne aujourd'hui (rien à modéliser), pas gravée dans le marbre. À re-noter dans le code de
+  `SecurityConfig` au S6.
 
 ## 8. MapStruct vs aggregates DDD riches : la bonne frontière (SECTION DÉDIÉE — vaut de l'or en entretien)
 - **MapStruct est conçu pour les beans anémiques** : `getX()/setX()`, constructeur public, zéro

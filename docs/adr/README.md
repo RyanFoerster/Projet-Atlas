@@ -28,6 +28,7 @@ Voir `ADR-template.md` pour le squelette à dupliquer.
 | 014 | UUID v7 pour les aggregates + libs purement utilitaires autorisées dans le domaine | Accepté |
 | 015 | Stratégie de mapping aggregate ↔ persistence (mappers manuels, MapStruct pour les DTO) | Accepté |
 | 016 | Design system Atlas comme source de vérité visuelle | Accepté |
+| 017 | Le kernel `shared` est un module Spring Modulith OPEN | Accepté |
 
 ## Règles
 
