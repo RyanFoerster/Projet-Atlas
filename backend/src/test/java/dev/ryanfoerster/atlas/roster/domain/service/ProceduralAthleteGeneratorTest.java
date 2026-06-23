@@ -33,17 +33,22 @@ class ProceduralAthleteGeneratorTest {
     }
 
     @Test
-    void rarity_is_specialization_prodigy_spikes_one_axis_generic_stays_balanced() {
-        Genetics prodigy = generator.generateCandidate(7L, Rarity.PRODIGY).genetics();
+    void rarity_tiers_are_distinct_by_number_of_specialized_axes_and_magnitude() {
         Genetics generic = generator.generateCandidate(7L, Rarity.GENERIC).genetics();
+        Genetics promising = generator.generateCandidate(7L, Rarity.PROMISING).genetics();
+        Genetics specialist = generator.generateCandidate(7L, Rarity.SPECIALIST).genetics();
+        Genetics prodigy = generator.generateCandidate(7L, Rarity.PRODIGY).genetics();
 
-        double prodigyPeak = peakAffinity(prodigy);
-        double genericPeak = peakAffinity(generic);
-        System.out.printf("[SPECIALIZATION] PRODIGY peak axis=%.3f, GENERIC peak axis=%.3f%n",
-                prodigyPeak, genericPeak);
+        for (var e : Map.of("GENERIC", generic, "PROMISING", promising, "SPECIALIST", specialist, "PRODIGY", prodigy).entrySet()) {
+            System.out.printf("[TIER %-10s] peak=%.3f, axes>=1.10=%d, axes>=1.20=%d%n",
+                    e.getKey(), peakAffinity(e.getValue()),
+                    countAxesAtLeast(e.getValue(), 1.10), countAxesAtLeast(e.getValue(), 1.20));
+        }
 
-        assertThat(prodigyPeak).isGreaterThanOrEqualTo(1.22); // un axe exceptionnel
-        assertThat(prodigyPeak).isGreaterThan(genericPeak);   // pas « tout en haut » pour generic
+        assertThat(peakAffinity(generic)).isLessThanOrEqualTo(1.06);        // 0 axe spécialisé
+        assertThat(countAxesAtLeast(promising, 1.08)).isGreaterThanOrEqualTo(1); // 1 axe modeste
+        assertThat(countAxesAtLeast(specialist, 1.12)).isGreaterThanOrEqualTo(2); // 2 axes francs
+        assertThat(peakAffinity(prodigy)).isGreaterThanOrEqualTo(1.20);     // 1 axe exceptionnel
     }
 
     @Test
@@ -73,6 +78,21 @@ class ProceduralAthleteGeneratorTest {
 
         assertThat(g.strengthAffinity(MovementPattern.ROW))
                 .isBetween(Genetics.STRENGTH_MIN, Genetics.STRENGTH_MAX);
+    }
+
+    private static int countAxesAtLeast(Genetics g, double threshold) {
+        int count = 0;
+        for (MovementPattern p : MovementPattern.values()) {
+            if (g.strengthAffinity(p) >= threshold) {
+                count++;
+            }
+        }
+        for (MuscleGroup m : MuscleGroup.values()) {
+            if (g.hypertrophyPotential(m) >= threshold) {
+                count++;
+            }
+        }
+        return count;
     }
 
     private static double peakAffinity(Genetics g) {

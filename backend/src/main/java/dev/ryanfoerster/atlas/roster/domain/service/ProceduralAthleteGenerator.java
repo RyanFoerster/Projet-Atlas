@@ -11,6 +11,8 @@ import dev.ryanfoerster.atlas.shared.domain.MuscleGroup;
 import dev.ryanfoerster.atlas.shared.domain.OneRepMax;
 import dev.ryanfoerster.atlas.shared.domain.Weight;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
@@ -141,35 +143,54 @@ public final class ProceduralAthleteGenerator implements AthleteGenerator {
      * sprint 4</em>.
      */
     private Genetics specializedGenetics(Random rng, Rarity rarity) {
-        // Variance de base : élargie pour PRODIGY (« les autres axes restent variables »).
-        double baseLo = rarity == Rarity.PRODIGY ? 0.85 : 0.92;
-        double baseHi = 1.10;
+        // Tiers RENDUS DISTINCTS (ADR-020) par le NOMBRE d'axes spécialisés ET la magnitude du spike
+        // — pas seulement la magnitude, sinon la frontière Promising/Specialist serait floue. La base
+        // = axes « moyens » ; PRODIGY a une base un peu plus variable.
+        double baseLo = rarity == Rarity.PRODIGY ? 0.85 : 0.88;
+        double baseHi = rarity == Rarity.PRODIGY ? 1.12 : 1.05;
+        int spikeCount = switch (rarity) {
+            case GENERIC -> 0;
+            case PROMISING -> 1;
+            case SPECIALIST -> 2;
+            case PRODIGY -> 1;
+        };
+        double[] spikeBand = switch (rarity) {            // bande du/des axe(s) spécialisé(s), orientée force
+            case GENERIC -> null;
+            case PROMISING -> new double[] {1.08, 1.16};  // un axe modeste
+            case SPECIALIST -> new double[] {1.12, 1.22}; // deux axes francs
+            case PRODIGY -> new double[] {1.20, 1.25};    // un axe exceptionnel
+        };
+
         Map<MuscleGroup, Double> hypertrophy = new EnumMap<>(MuscleGroup.class);
         for (MuscleGroup g : MuscleGroup.values()) {
-            hypertrophy.put(g, uniform(rng, baseLo, baseHi));
+            hypertrophy.put(g, clamp(uniform(rng, baseLo, baseHi), Genetics.HYPERTROPHY_MIN, Genetics.HYPERTROPHY_MAX));
         }
         Map<MovementPattern, Double> strength = new EnumMap<>(MovementPattern.class);
         for (MovementPattern p : MovementPattern.values()) {
-            strength.put(p, uniform(rng, baseLo, baseHi));
+            strength.put(p, clamp(uniform(rng, baseLo, baseHi), Genetics.STRENGTH_MIN, Genetics.STRENGTH_MAX));
         }
 
-        // Pointe sur un seul axe (sauf GENERIC = équilibré).
-        double[] spikeBand = switch (rarity) {
-            case GENERIC -> null;
-            case PROMISING -> new double[] {1.10, 1.18};
-            case SPECIALIST -> new double[] {1.15, 1.22};
-            case PRODIGY -> new double[] {1.22, 1.25};
-        };
         if (spikeBand != null) {
-            boolean spikeStrength = rng.nextBoolean();
-            if (spikeStrength) {
-                MovementPattern p = MovementPattern.values()[rng.nextInt(MovementPattern.values().length)];
-                strength.put(p, clamp(uniform(rng, spikeBand[0], spikeBand[1]), Genetics.STRENGTH_MIN, Genetics.STRENGTH_MAX));
-            } else {
-                MuscleGroup g = MuscleGroup.values()[rng.nextInt(MuscleGroup.values().length)];
-                // L'hypertrophie monte plus haut (plage 0.85–1.30) : on décale la bande vers le haut.
-                hypertrophy.put(g, clamp(uniform(rng, spikeBand[0] + 0.05, spikeBand[1] + 0.05),
-                        Genetics.HYPERTROPHY_MIN, Genetics.HYPERTROPHY_MAX));
+            // spikeCount axes DISTINCTS, piochés dans le pool combiné (patterns de force + groupes
+            // musculaires) via un shuffle seedé (déterminisme).
+            int patternCount = MovementPattern.values().length;
+            List<Integer> pool = new ArrayList<>();
+            for (int i = 0; i < patternCount + MuscleGroup.values().length; i++) {
+                pool.add(i);
+            }
+            Collections.shuffle(pool, rng);
+            for (int k = 0; k < spikeCount; k++) {
+                int idx = pool.get(k);
+                if (idx < patternCount) {
+                    MovementPattern p = MovementPattern.values()[idx];
+                    strength.put(p, clamp(uniform(rng, spikeBand[0], spikeBand[1]),
+                            Genetics.STRENGTH_MIN, Genetics.STRENGTH_MAX));
+                } else {
+                    MuscleGroup g = MuscleGroup.values()[idx - patternCount];
+                    // L'hypertrophie monte plus haut (max 1.30) : bande décalée de +0.05.
+                    hypertrophy.put(g, clamp(uniform(rng, spikeBand[0] + 0.05, spikeBand[1] + 0.05),
+                            Genetics.HYPERTROPHY_MIN, Genetics.HYPERTROPHY_MAX));
+                }
             }
         }
 
