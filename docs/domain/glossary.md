@@ -51,7 +51,9 @@ rien — le cookie suffit. À ne pas réintroduire sans raison.
 ## Concepts athlète
 
 ### Athlete
-Aggregate root du module **athletics**. Représente un athlète virtuel ou l'athlète miroir du Player. Possède une `Genetics`, un `FitnessFatigueState`, des `CurrentStats`, une `NutritionPhase`, un `TrainingHistory`.
+Représente un athlète virtuel ou l'athlète miroir du Player. Possède une `Genetics`, des `CurrentStats`, et (à terme) un `FitnessFatigueState`, une `NutritionPhase`, un `TrainingHistory`.
+
+> **Précision modélisation (sprint 2, ADR-019)** : dans le module **roster**, `Athlete` est une **entity interne** de l'aggregate `Roster` (pas de repository propre, créé via `Roster.addMirror`/`recruit`). Le futur module **athletics** portera le comportement dynamique (Fitness-Fatigue) ; le roster ne porte que l'identité, la génétique et les stats actuelles.
 
 ### MirrorAthlete
 Conceptuellement, l'Athlete unique d'un Player qui est lié à ses séances IRL. Techniquement, c'est un Athlete avec `isMirror: true`. Pas un type séparé. Au plus un MirrorAthlete par Player.
@@ -163,10 +165,25 @@ Phase de récupération volontaire dans un programme : volume et/ou intensité r
 ## Modèle de roster
 
 ### Roster
-Aggregate root du module **roster**. Représente l'écurie d'athlètes du Player. Contient les Athletes actifs, l'historique des recrutements, des limitations (taille max selon le niveau du coach).
+Aggregate root du module **roster** (le **seul** du module, ADR-019). Représente l'écurie d'athlètes du Player. Contient ses `Athlete` (entities internes), avec l'invariant **« au plus un athlète miroir »** protégé au niveau de l'aggregate. `owner_id` unique : un Player a au plus un Roster.
 
 ### Recruitment
-Action de recruter un nouvel Athlete dans le Roster. En MVP, recrutement simple via liste de candidats générés. Post-MVP, mécanique riche type scouting.
+Action de recruter un nouvel Athlete dans le Roster. En MVP : `/scout` propose un candidat, `/recruit` l'ajoute par son id.
+
+### Rarity
+Énumération de la **rareté** d'un athlète, modélisée comme de la **spécialisation**, pas un niveau global (ADR-020) : `GENERIC` (65 %, équilibré), `PROMISING` (25 %, un axe modeste), `SPECIALIST` (8 %, deux axes francs), `PRODIGY` (2 %, un axe exceptionnel). Personne n'est élite partout. Anti-gatcha : la rareté n'est pas « plus de puissance brute », c'est une spécificité.
+
+### Phénomène
+**Libellé UI français** du palier `PRODIGY` (le code garde l'enum `PRODIGY`). Choisi plutôt que « Prodige » (jugé enfantin) : registre sport-outlier, plus mature. Pour le miroir, la rareté n'est pas significative (toujours `GENERIC` par défaut technique, masqué à l'UI).
+
+### AthleteCandidate
+Value object décrivant un athlète **généré mais pas encore recruté** : nom, âge, profil, `Genetics`, `Rarity`, 1RM de base. Produit par l'`AthleteGenerator` au scouting.
+
+### ScoutedCandidate
+Entity du module roster : un `AthleteCandidate` **persisté temporairement** (id propre + TTL court, consommé une seule fois — même pattern que `MagicLink`, ADR-022). Garantit que `/recruit` part d'un candidat serveur (anti-forge), pas d'un objet renvoyé par le client.
+
+### MirrorCreationRequest
+Value object groupant les saisies du Player pour créer son miroir (nom, âge, poids, taille, sexe, 1RM mesurés). Le backend en dérive une `Genetics` hybride (les ratios force/poids orientent les affinités de force, ADR-021).
 
 ### AthleteProfile
 Sous-objet de l'Athlete affichant les informations publiques : nom, âge, poids, classe (powerlifter, strongman, bodybuilder, etc.), photo générée, historique des performances notables.
