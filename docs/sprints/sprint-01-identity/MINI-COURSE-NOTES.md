@@ -24,6 +24,43 @@
 - Propriété vérifiée = **totalité de la fonction** : pour 1000 entrées aléatoires, `Email.of` renvoie soit un Email valide normalisé, soit `InvalidEmailException` — **jamais** d'exception technique (NPE, IndexOutOfBounds).
 - Différence avec un test à exemples : on couvre l'espace d'entrée, pas juste les cas qu'on a imaginés.
 
-## 4. Pattern « retour de nouvelle instance » pour les aggregates immutables (à remplir en S2)
-- À explorer en S2 : with-method pattern vs builder vs copy-constructor.
-- Noter le choix retenu + pourquoi (lisibilité), car tous les autres aggregates le copieront.
+## 4. Pattern « retour de nouvelle instance » pour les aggregates immutables (DÉCIDÉ en S2)
+- **Choix retenu : « business method + constructeur de copie privé ».** Chaque comportement
+  métier (`recordLogin`, `updateDisplayName`…) est une méthode publique qui porte l'intention
+  ET garantit les invariants, puis délègue la recopie au constructeur canonique privé.
+- **Alternatives écartées** (à expliquer dans le mini-cours) :
+  - *`withXxx()` publics* (un par champ) : exposeraient une recopie champ par champ qui
+    court-circuite les invariants et n'a pas de sens métier (`withLastLoginAt` ≠ `recordLogin`).
+  - *Builder / toBuilder* : cérémonie injustifiée pour 7 champs ; utile surtout quand beaucoup
+    de champs optionnels.
+- C'est LE pattern que tous les aggregates du projet copieront.
+
+## 5. Value object vs Entity : égalité par valeur vs par identité (distinction DDD centrale)
+- **Value object** (UserId, Email, MagicLinkToken…) = défini par sa valeur → `record`
+  (égalité structurelle sur tous les champs, gratuite).
+- **Entity / Aggregate** (User, MagicLink) = a une **identité** qui persiste à travers les
+  changements d'état → **classe** (pas record) avec `equals`/`hashCode` **sur l'id seul**.
+- Test qui prouve le concept : `user.recordLogin(t)` est **égal** au `user` d'origine (même id,
+  état différent) — un record l'aurait rendu non-égal. C'est faux au sens DDD.
+- Piège : un débutant fait `User` en record « parce que c'est moderne » → égalité par tous les
+  champs → deux états du même Player ne sont plus égaux → bugs en collection/persistence.
+
+## 6. Module Spring Modulith OPEN pour le kernel partagé (concept Modulith)
+- Par défaut un module est **CLOSED** : seul son package de base est exposé, ses sous-packages
+  sont internes → un autre module ne peut PAS les référencer. C'est voulu pour les bounded
+  contexts (encapsulation).
+- Le `shared/` est un **kernel** voulu accessible par tous → on le déclare `@ApplicationModule(type = OPEN)`
+  dans `shared/package-info.java`.
+- **Vécu réel** : la 1re référence inter-module (`identity` → `shared.domain.exceptions.DomainException`)
+  a fait ÉCHOUER `modules.verify()` avec « depends on non-exposed type ». Marquer shared OPEN règle ça.
+- Contrepartie : le kernel doit rester minimal (un kernel qui grossit = couplage global déguisé).
+- ⚠️ À soumettre à Ryan au gate S5 : est-ce que ce choix mérite un ADR dédié, ou la JavaDoc du
+  package-info + cette note suffisent ? (C'est une implémentation de la décision kernel déjà actée,
+  pas une nouvelle décision — mais traçabilité à confirmer.)
+
+## 7. Events inter-modules en types primitifs (découplage de frontière)
+- Les events publics (`api/events/PlayerRegistered`, `PlayerLoggedIn`) portent `UUID`/`String`/`Instant`,
+  PAS les value objects du domaine (`UserId`, `Email`).
+- Raison : un event vit dans `api/` et franchit la frontière. S'il portait `UserId` (dans
+  `domain.model`, non exporté), le module consommateur devrait importer le domaine d'identity →
+  violation Modulith. Contrat stable et autonome > réutilisation des VOs internes.
