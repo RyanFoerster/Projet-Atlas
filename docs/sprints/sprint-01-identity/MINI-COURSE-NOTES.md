@@ -84,6 +84,29 @@
 - Le piège du débutant : forcer MapStruct partout → soit affaiblir l'aggregate (setters publics =
   catastrophe DDD), soit contorsionner l'outil (coût > valeur). Savoir choisir la frontière = DDD profond.
 
+## 9. Intégration du design system Atlas dans Angular 22 (mission frontend parallèle)
+À intégrer au mini-cours Sprint 1 (volet frontend) :
+- **Stratégie de tokens à deux niveaux** : variables CSS (`tokens.css`, source de vérité, switch dark/light
+  par `:root` vs `[data-theme="light"]`) + mapping Tailwind v4 (`@theme`) qui expose ces variables en
+  utilities (`bg-surface-raised`, `text-h1`…). Le « pourquoi le mix » : les CSS vars gèrent le theming
+  runtime (un seul attribut bascule tout), Tailwind donne l'ergonomie d'auteur. On ne met JAMAIS de
+  valeur en dur dans `@theme`, seulement `var(--…)`.
+- **Tailwind v4 CSS-first** : pas de `tailwind.config.js`. Le `darkMode: ['selector', …]` de la spec v3
+  devient `@custom-variant dark ([data-theme="dark"] &)`. Piège : dark étant le défaut sur `:root`, la
+  variante `dark:` est rarement utile — les tokens font le travail.
+- **Dark = défaut sur `:root`** (pas via JS) → aucun flash de thème. Renforcé par un script inline
+  anti-flash dans `index.html` qui pose `data-theme` avant le rendu.
+- **ThemeService signals** : `signal` (état) + `computed` (isDark) + `effect` (applique `data-theme` au
+  DOM réactivement). Persistance `localStorage` au choix explicite seulement (sinon on suit
+  `prefers-color-scheme`). Test : `TestBed.tick()` pour flusher l'effect en zoneless.
+- **A11y du toggle** : vrai `<button>` (clavier natif), `aria-label` dynamique, `aria-pressed`, focus
+  ring bronze visible (jamais `outline:none` seul).
+- **⚠️ Décision à prendre quand le frontend Sprint 1 aura besoin de plus d'icônes** (login, onboarding,
+  home) : `lucide-angular` ne supporte pas encore Angular 22. Pour cette mission ponctuelle on a inliné
+  2 SVG Lucide. À l'échelle, prévoir une approche structurée — probablement un composant
+  `<atlas-icon name="check">` avec mapping interne des SVG Lucide — plutôt que d'inliner partout. À
+  trancher avec Ryan le moment venu.
+
 ## 7. Events inter-modules en types primitifs (découplage de frontière)
 - Les events publics (`api/events/PlayerRegistered`, `PlayerLoggedIn`) portent `UUID`/`String`/`Instant`,
   PAS les value objects du domaine (`UserId`, `Email`).
