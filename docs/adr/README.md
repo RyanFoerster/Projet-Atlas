@@ -33,6 +33,8 @@ Voir `ADR-template.md` pour le squelette à dupliquer.
 | 016 | Design system Atlas comme source de vérité visuelle | Accepté |
 | 017 | Le kernel `shared` est un module Spring Modulith OPEN | Accepté |
 | 018 | Topologie de dev same-origin via proxy Angular | Accepté |
+| 020 | Système de rareté par spécialisation (vs niveau global) | Accepté |
+| 021 | Génétique hybride de l'athlète miroir (influencée par les 1RM) | Accepté |
 
 ## Règles
 
