@@ -52,12 +52,13 @@ import { AtlasIcon } from '../../ui/atlas-icon';
             }
           </div>
 
-          <atlas-genetics-panel [genetics]="r.candidate.genetics" />
-
-          <div class="flex gap-3 mt-6">
+          <!-- Actions au-dessus du profil : décidables en 3s sans scroller toute la génétique. -->
+          <div class="flex gap-3 mb-6 pb-6 border-b border-[var(--border-subtle)]">
             <atlas-button variant="primary" [loading]="recruiting()" (click)="recruit(r)">Recruter</atlas-button>
             <atlas-button variant="secondary" [disabled]="recruiting()" (click)="refuse()">Refuser</atlas-button>
           </div>
+
+          <atlas-genetics-panel [genetics]="r.candidate.genetics" />
         </div>
       } @else if (error()) {
         <p class="font-sans text-body-sm text-[var(--danger)] flex items-center gap-2">
