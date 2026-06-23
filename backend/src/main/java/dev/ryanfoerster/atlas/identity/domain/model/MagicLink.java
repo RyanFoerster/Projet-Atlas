@@ -62,6 +62,21 @@ public final class MagicLink {
         return new MagicLink(token, userEmail, createdAt, expiresAt, null, ipAddress, userAgent);
     }
 
+    /**
+     * <strong>FOR PERSISTENCE LAYER ONLY — DO NOT USE FROM APPLICATION/WEB.</strong>
+     * Pour émettre un nouveau lien, utiliser {@link #issue}.
+     *
+     * <p>Réhydrate un lien <em>existant</em> depuis un état stocké, y compris son éventuel
+     * {@code consumedAt}. Passe par le même constructeur privé (invariants garantis).
+     * Voir ADR-015.
+     *
+     * @param consumedAt instant de consommation, ou {@code null} si le lien n'a pas été consommé
+     */
+    public static MagicLink reconstitute(MagicLinkToken token, Email userEmail, Instant createdAt,
+                                         Instant expiresAt, Instant consumedAt, String ipAddress, String userAgent) {
+        return new MagicLink(token, userEmail, createdAt, expiresAt, consumedAt, ipAddress, userAgent);
+    }
+
     /** {@code true} si le lien a expiré à l'instant {@code now}. */
     public boolean isExpired(Instant now) {
         Objects.requireNonNull(now, "now");

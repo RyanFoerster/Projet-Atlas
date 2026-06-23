@@ -76,6 +76,24 @@ public final class User {
     }
 
     /**
+     * <strong>FOR PERSISTENCE LAYER ONLY — DO NOT USE FROM APPLICATION/WEB.</strong>
+     * Pour créer un nouveau Player, utiliser {@link #register}.
+     *
+     * <p>Réhydrate un Player <em>existant</em> à partir d'un état stocké (id, timestamps…
+     * tels qu'ils étaient en base), sans la sémantique de création de {@link #register}
+     * (qui génère un id et fixe la date de création). Passe par le même constructeur privé,
+     * donc les invariants techniques restent garantis. Voir ADR-015 (pattern reconstitute,
+     * et pourquoi cette factory est {@code public} faute de package-private possible entre
+     * {@code domain.model} et {@code infrastructure.persistence}).
+     *
+     * @param lastLoginAt dernière connexion, ou {@code null} si le Player ne s'est jamais connecté
+     */
+    public static User reconstitute(UserId id, Email email, DisplayName displayName, Locale locale,
+                                    ZoneId timezone, Instant createdAt, Instant lastLoginAt) {
+        return new User(id, email, displayName, locale, timezone, createdAt, lastLoginAt);
+    }
+
+    /**
      * Enregistre un login : retourne une nouvelle instance avec {@code lastLoginAt = now}.
      *
      * @throws IllegalArgumentException si {@code now} précède {@link #createdAt()} (anomalie d'horloge)

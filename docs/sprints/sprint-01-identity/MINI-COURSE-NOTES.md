@@ -58,6 +58,32 @@
   package-info + cette note suffisent ? (C'est une implémentation de la décision kernel déjà actée,
   pas une nouvelle décision — mais traçabilité à confirmer.)
 
+## 8. MapStruct vs aggregates DDD riches : la bonne frontière (SECTION DÉDIÉE — vaut de l'or en entretien)
+- **MapStruct est conçu pour les beans anémiques** : `getX()/setX()`, constructeur public, zéro
+  logique, zéro invariant. Il génère du code de copie champ-à-champ par convention de nommage.
+- **Un aggregate DDD est l'anti-bean** : constructeur privé, factories métier (`register()` qui
+  *génère un id*), accesseurs record-style (`id()` pas `getId()`), value objects à (dé)wrapper,
+  invariants garantis au constructeur. Les 3 frictions vécues (voir ADR-015) :
+  1. pas de constructeur public/builder/setter → MapStruct ne peut rien construire ;
+  2. accesseurs `id()` non reconnus par la stratégie par défaut (attend `getX`) ;
+  3. value objects → conversions manuelles de toute façon.
+- **Pattern `reconstitute()`** :
+  - *Nom* : `reconstitute` (réhydratation), distinct de la factory de création.
+  - *Intention* : `register()` = « un nouveau Player naît » (génère identité + timestamps + règles).
+    `reconstitute()` = « ce Player existait déjà, on le recharge tel quel depuis le stockage ».
+  - *Invariants* : passe par le MÊME constructeur privé → invariants techniques garantis, pas de
+    porte dérobée.
+  - *Visibilité* : `public` faute de mieux. Le package-private serait idéal mais IMPOSSIBLE ici :
+    `domain.model` et `infrastructure.persistence` sont deux packages distincts (layering hexagonal
+    voulu), et mettre le mapper dans `domain.model` y tirerait JPA (viole ADR-003). Modulith ne
+    restreint pas la visibilité intra-module. → `public` + garde JavaDoc « FOR PERSISTENCE LAYER ONLY ».
+- **Règle décisionnelle (doctrine projet, ADR-015)** :
+  - frontière **aggregate ↔ persistence (JPA)** → **mapping manuel** ;
+  - frontière **application ↔ DTO web** → **MapStruct** (objets anémiques par design, S6).
+- Référence : Vernon (*IDDD*, Factories & Repositories), Evans (*DDD*, Factories qui reconstituent).
+- Le piège du débutant : forcer MapStruct partout → soit affaiblir l'aggregate (setters publics =
+  catastrophe DDD), soit contorsionner l'outil (coût > valeur). Savoir choisir la frontière = DDD profond.
+
 ## 7. Events inter-modules en types primitifs (découplage de frontière)
 - Les events publics (`api/events/PlayerRegistered`, `PlayerLoggedIn`) portent `UUID`/`String`/`Instant`,
   PAS les value objects du domaine (`UserId`, `Email`).
