@@ -4,10 +4,11 @@ import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { CurrentUser, ConsumeResult } from './auth.models';
 
-// En dev, le backend est cross-origin (8080). En prod (même origine), une URL relative '/api/auth'
-// conviendrait — à paramétrer via environment au déploiement (S9). On reste aligné sur le hardcode
-// déjà présent côté smoke test.
-const AUTH_API = 'http://localhost:8080/api/auth';
+// URL relative same-origin. En dev, le proxy Angular (proxy.conf.json) renvoie /api vers :8080 ;
+// en prod, frontend et backend sont sur la même origine (ADR-018). Du coup la paramétrisation via
+// environment.ts qu'on avait prévue en TODO n'est PAS nécessaire pour le cas standard : elle ne
+// redeviendrait utile que si le backend déménageait sur un autre domaine, ce qui n'est pas planifié.
+const AUTH_API = '/api/auth';
 
 /**
  * État d'authentification et appels au backend Identity. Signals-first : `currentUser` est la
