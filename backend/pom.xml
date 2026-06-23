@@ -183,9 +183,9 @@
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
-            <!-- JaCoCo : instrumente les tests (prepare-agent) et génère le rapport de couverture.
-                 L'enforcement du seuil (≥ 80 % sur domain/, goal `check`) sera ajouté en S9,
-                 une fois le module Identity complet — inutile de casser le build avant. -->
+            <!-- JaCoCo : instrumente (prepare-agent), génère le rapport (report) et applique le seuil
+                 de couverture sur le domaine (check). Le seuil ne porte QUE sur domain/ (≥ 80 % de
+                 lignes), conformément à CLAUDE.md §5 — l'application/infrastructure restent plus relax. -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -203,6 +203,31 @@
                         <goals>
                             <goal>report</goal>
                         </goals>
+                    </execution>
+                    <execution>
+                        <id>check-domain-coverage</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <rule>
+                                    <element>PACKAGE</element>
+                                    <includes>
+                                        <include>dev.ryanfoerster.atlas.identity.domain.*</include>
+                                        <include>dev.ryanfoerster.atlas.shared.domain.*</include>
+                                    </includes>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.80</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
