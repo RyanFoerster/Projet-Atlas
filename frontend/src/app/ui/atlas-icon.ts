@@ -5,7 +5,8 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 /** Icônes enregistrées. Union stricte : TypeScript refuse toute icône non listée à la compilation. */
-export type AtlasIconName = 'mail' | 'alert-circle' | 'arrow-right' | 'log-out' | 'sun' | 'moon';
+export type AtlasIconName =
+  | 'mail' | 'alert-circle' | 'arrow-right' | 'arrow-left' | 'log-out' | 'sun' | 'moon' | 'search';
 
 /** Tailles canoniques du design system (§7). Pas de taille libre. */
 export type AtlasIconSize = 16 | 20 | 24;
@@ -47,6 +48,14 @@ export type AtlasIconSize = 16 | 20 | 24;
         @case ('arrow-right') {
           <path d="M5 12h14" />
           <path d="m12 5 7 7-7 7" />
+        }
+        @case ('arrow-left') {
+          <path d="m12 19-7-7 7-7" />
+          <path d="M19 12H5" />
+        }
+        @case ('search') {
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.3-4.3" />
         }
         @case ('log-out') {
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />

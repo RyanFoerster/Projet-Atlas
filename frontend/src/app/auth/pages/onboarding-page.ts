@@ -61,7 +61,7 @@ export class OnboardingPage {
 
     this.submitting.set(true);
     this.auth.completeSignup(name).subscribe({
-      next: () => this.router.navigate(['/home']),
+      next: () => this.router.navigate(['/roster']),
       error: (err: HttpErrorResponse) => {
         this.submitting.set(false);
         if (err.status === 401) {

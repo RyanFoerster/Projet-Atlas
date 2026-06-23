@@ -57,7 +57,7 @@ export class AuthCallbackPage implements OnInit {
           this.router.navigate(['/onboarding']);
         } else {
           this.auth.loadCurrentUser().subscribe({
-            next: () => this.router.navigate(['/home']),
+            next: () => this.router.navigate(['/roster']),
             error: () => this.error.set('Connexion impossible. Demande un nouveau lien.'),
           });
         }
