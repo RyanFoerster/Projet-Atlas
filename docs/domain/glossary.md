@@ -19,6 +19,35 @@ Niveau de progression du coach (XP cumulé, prestige). Géré par le module **pr
 
 ---
 
+## Authentification (module identity)
+
+### MagicLink
+Entity du module **identity** : un lien à **usage unique** envoyé par email, valable un court instant,
+qui authentifie son porteur quand il le consomme. Pas un aggregate root — il vit dans le contexte de
+l'authentification d'un Player. On y stocke l'**email** (`userEmail`), pas un `UserId` : au moment de
+l'émission, le Player peut ne pas exister encore (premier login = signup implicite).
+
+### MagicLinkToken
+Value object : le **secret** d'un `MagicLink`, un `UUID v7` (RFC 9562) transmis dans l'URL du lien. Type
+distinct de `UserId` (un identifiant ≠ un secret d'authentification).
+
+### MagicLinkExpirationPolicy
+Domain policy stateless qui décide de la durée de vie d'un lien magique (**TTL 15 minutes** par défaut).
+Isole la règle « +15 min » dans un objet nommé et testable plutôt que de la coder en dur.
+
+### DomainException
+Classe de base abstraite (kernel `shared`) de toutes les **exceptions métier**. Réservée aux violations
+de règles métier (→ HTTP 400 + message) ; jamais aux erreurs techniques (→ 500, qui utilisent
+`IllegalArgumentException`/`IllegalStateException`). Voir mini-cours Sprint 1, concept 3.
+
+### tempSessionToken — *terme écarté*
+Le prompt Sprint 1 envisageait un « tempSessionToken » pour porter l'email vérifié entre la consommation
+du lien et l'onboarding (flow A). **Non retenu** : l'état « email vérifié, compte pas encore créé » est
+porté par la **session HTTP** (cookie `JSESSIONID`), pas par un jeton applicatif. Le frontend ne stocke
+rien — le cookie suffit. À ne pas réintroduire sans raison.
+
+---
+
 ## Concepts athlète
 
 ### Athlete
@@ -181,6 +210,7 @@ Projection pré-calculée en fin de période, exposée en dashboard "fun" partag
 | Event | Module émetteur | Modules consommateurs typiques |
 |-------|-----------------|-------------------------------|
 | `PlayerRegistered` | identity | insights, roster |
+| `PlayerLoggedIn` | identity | insights, progression |
 | `WorkoutLogged` | personaltraining | athletics, insights |
 | `ProgramCycleCompleted` | personaltraining | programming, progression, insights |
 | `StimulusApplied` | athletics | insights |
@@ -192,6 +222,13 @@ Projection pré-calculée en fin de période, exposée en dashboard "fun" partag
 | `ProgramInstanceCreated` | programming | athletics, insights |
 | `RecruitmentCompleted` | roster | insights, progression |
 | `CompetitionFinished` | competition | insights, progression |
+
+### ApplicationEvent vs ModulithEvent (mécanique de publication)
+Deux niveaux, souvent confondus :
+- **Spring `ApplicationEvent`** : le mécanisme de publication standard de Spring (`ApplicationEventPublisher.publishEvent(...)`). Synchrone par défaut, en mémoire. C'est ce qu'on utilise aujourd'hui pour publier `PlayerRegistered`/`PlayerLoggedIn` depuis les use cases.
+- **Spring Modulith event** : par-dessus, Modulith ajoute un **event publication registry** qui *persiste* les events consommés par un `@ApplicationModuleListener` (un `@TransactionalEventListener` durable). Cela permet la livraison fiable et le passage progressif à l'asynchrone entre modules (un consommateur qui plante ne perd pas l'event).
+
+En clair : on **publie** des `ApplicationEvent` ; Modulith les **fiabilise** dès qu'un module les consomme via un listener dédié. Au Sprint 1, on publie sans consommateur encore (les `eventhandler/` sont vides) — la fiabilisation Modulith deviendra visible quand un module écoutera réellement.
 
 ---
 
