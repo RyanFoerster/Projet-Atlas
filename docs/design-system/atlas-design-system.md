@@ -422,6 +422,74 @@ Modèle **sidebar gauche + top bar** (Linear / Football Manager).
 - L'item actif porte `accent-surface` + texte primaire + (optionnel) un trait bronze 2px à gauche.
 - **Top bar** (hauteur 56px) : contexte (fil d'Ariane / nom d'écran à gauche), actions globales + recherche + toggle thème + avatar à droite. `bg-[var(--surface-base)]/88 backdrop-blur border-b border-[var(--border-subtle)] sticky top-0`.
 
+### 4.8 RarityBadge (module roster)
+
+Variante de Badge/Tag (4.4) pour la **rareté d'un athlète**. Quatre paliers (`GENERIC`, `PROMISING`,
+`SPECIALIST`, `PRODIGY`). **Principe non-négociable** : palette **minérale**, hiérarchie par **graisse +
+saturation**, jamais par saut de teinte (pas de gris/bleu/violet/or façon jeu vidéo). Les trois premiers
+paliers sont des surfaces teintées discrètes ; seul le palier rare est un **aplat plein** — « la beauté de
+l'écart, pas de la décoration ». Comme tout badge : `h-[22px] text-caption uppercase tracking-[0.08em]
+rounded-md px-2 py-0.5 inline-flex items-center gap-1`.
+
+| Palier | Libellé FR | Fond | Texte | Bordure |
+|---|---|---|---|---|
+| GENERIC | Générique | `--surface-raised-2` | `--text-tertiary` | `--border-default` |
+| PROMISING | Prometteur | `rgba(205,166,74,0.14)` (ocre/14%) | `--dv-7` `#CDA64A` | — |
+| SPECIALIST | Spécialiste | `--accent-surface` | `--accent` `#C7A05C` | — |
+| PRODIGY | **Phénomène** | `--accent` `#C7A05C` **plein** | `--accent-text-on` `#14130E` | — |
+
+- **Libellé `PRODIGY` → « Phénomène »** (pas « Prodige », jugé enfantin) : registre sport-outlier, mature.
+  Le mapping enum→libellé est côté front (le domaine garde `Rarity.PRODIGY`).
+- **Contraste (vérifié, WCAG)** : seul l'aplat plein du Phénomène porte du texte — `#14130E` sur `#C7A05C`
+  = **7.6:1**, AA **et AAA** pour texte normal. Les trois autres paliers utilisent du texte teinté sur
+  surface sombre/neutre (≥ AA). Couleur jamais seule porteuse de sens : le libellé texte est toujours présent.
+- **Cohérence métier** : la distribution est 65/25/8/2 % — le Phénomène est l'exception par construction,
+  son unique aplat plein le rend reconnaissable instantanément dans une grille dense.
+
+```html
+<!-- GENERIC -->   <span class="… bg-[var(--surface-raised-2)] text-[var(--text-tertiary)] border border-[var(--border-default)]">Générique</span>
+<!-- PROMISING --> <span class="… bg-[rgba(205,166,74,0.14)] text-[var(--dv-7)]">Prometteur</span>
+<!-- SPECIALIST -->_<span class="… bg-[var(--accent-surface)] text-[var(--accent)]">Spécialiste</span>
+<!-- PRODIGY -->   <span class="… bg-[var(--accent)] text-[var(--accent-text-on)] font-semibold">Phénomène</span>
+```
+
+### 4.9 StatBlock — barre de valeur normalisée (module roster)
+
+Brique de la **visualisation génétique**. À distinguer du Stat/Metric block (4.5, gros chiffre + delta) :
+ici, une **ligne-barre horizontale** pour une valeur dans une plage connue, avec **repère de baseline à 1.0**
+(la « moyenne » génétique) — ce repère transforme un chiffre abstrait en information visuelle immédiate.
+
+- **Anatomie** (ligne) : `label` (gauche) · `track` (barre, `--surface-sunken` + `border-subtle`) avec
+  `fill` proportionnel (`--accent`) et un **tick baseline 1.0** · `value` (Plex Mono tabular, droite,
+  `--text-primary` ; unité `--text-tertiary`).
+- **Plage** : normalisée sur la plage du système (force 0.80–1.25, hypertrophie 0.85–1.30). Le fill = position
+  dans la plage ; au-delà de 1.0 le fill dépasse visiblement le tick.
+- **Couleur** : fill **neutre bronze** (`--accent`), **jamais** vert/rouge sémantique — réservé aux deltas
+  dynamiques ; la génétique est un potentiel statique.
+- **État `highlight`** (axe spécialisé) : valeur en `--text-primary` **semibold** + point bronze ; le reste
+  en `--text-secondary`.
+- **Label** : caption uppercase par défaut. **Si l'uppercase sonne « crié »** sur les noms de groupes/patterns,
+  basculer en *regular case* + `--text-tertiary` semibold (à trancher en intégration).
+- **Regroupement** : les StatBlock s'empilent sous un en-tête de groupe (caption) — « Hypertrophie » (par
+  MuscleGroup), « Force » (par MovementPattern), puis « Récupération / Fibres / Sensibilité ».
+
+### 4.10 AthleteCard (module roster)
+
+Compose Card (4.3) + RarityBadge (4.8) + StatBlock (4.9).
+
+- **Anatomie** : en-tête `nom` (`font-display`) + `RarityBadge` (haut-droite) ; ligne méta `âge · poids`
+  (mono, `--text-tertiary`) ; si miroir, tag discret `Miroir` (`accent-surface` + icône).
+- **Variantes** :
+  - `summary` (grille roster) : nom + badge + méta + tag miroir. `p-4`, **carte interactive** (variante
+    cliquable de Card) → `/roster/athletes/:id`.
+  - `detailed` (résultat de scout) : `summary` + **la génétique COMPLÈTE par défaut** (tous les axes via
+    StatBlock, regroupés) + actions `Recruter` / `Refuser`. `p-6`. Un joueur sérieux doit voir le profil
+    entier pour décider — y compris les points faibles d'un Phénomène déséquilibré. Si trop dense, prévoir
+    un toggle « voir le détail », mais **le défaut reste tout visible** (ne jamais réduire à un top-N).
+- **États** : `default` / `hover` (bordure `border-strong` + `shadow-md`) / `focus-visible` (focus-ring) /
+  `loading` (squelette pendant le scout).
+- **Comportement** : `summary` navigue ; `detailed` émet `recruit`/`refuse` (pas de navigation propre).
+
 ---
 
 ## 5. Patterns & layouts canoniques

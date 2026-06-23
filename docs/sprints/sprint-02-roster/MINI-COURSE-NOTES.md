@@ -31,7 +31,15 @@
 - 3 couches : domaine pur / DTO infra `@JdbcTypeCode(SqlTypes.JSON)` (Hibernate 7 natif, zéro dép) /
   mapper manuel qui fait AUSSI la (dé)sérialisation. Prouvé : `jsonb_typeof = 'object'`, round-trip exact.
 
-## 6. Décomposer une responsabilité technique en plusieurs domain services (SRP)
+## 6. REST design : 200 vs 201
+- `POST /scout` → **200** : proposition non adressable (pas d'URL `GET /candidate/:id`), un calcul, pas
+  une ressource créée côté API.
+- `POST /mirror` et `POST /recruit` → **201** : une ressource (l'athlète) est créée et adressable via
+  `GET /api/roster/athletes/:id`. Distinction REST orthodoxe.
+- Bonus contrat : `409` (miroir déjà créé), `404` (candidat expiré/recruté, athlète hors roster),
+  `400` (validation VO), `401` (pas de session) — pilotés par un `@RestControllerAdvice` à précédence haute.
+
+## 7. Décomposer une responsabilité technique en plusieurs domain services (SRP)
 - `RarityRoller` (tire le tier) + `AthleteGenerator` (génère selon le tier) : deux services à
   responsabilité unique plutôt qu'un `generateCandidate(rarityRoll: double)` monolithique. Le use case
   compose. Bel exemple de Single Responsibility appliqué aux domain services.
