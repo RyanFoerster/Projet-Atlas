@@ -23,7 +23,13 @@
         <!-- Libs hors écosystème Spring : pinnées explicitement (ADR-009, règle 2) -->
         <spring-modulith.version>2.1.0</spring-modulith.version>
         <springdoc.version>3.0.3</springdoc.version>
-        <!-- mapstruct sera ajouté au sprint 1 (mapping domaine↔JPA, pas d'entité avant) -->
+        <!-- uuid-creator : génération d'UUID v7 (RFC 9562) pour les identifiants d'aggregate (ADR-014).
+             Lib purement utilitaire (zéro I/O, zéro framework) → autorisée dans domain/ (ADR-003 amendé). -->
+        <uuid-creator.version>6.1.1</uuid-creator.version>
+        <!-- mapstruct sera ajouté en S3 (mapping domaine↔JPA, pas d'entité avant) -->
+
+        <!-- JaCoCo : mesure de couverture (Java 25 officiellement supporté depuis 0.8.14) -->
+        <jacoco.version>0.8.15</jacoco.version>
 
         <!-- Versions héritées du BOM Boot 4.1, figées pour traçabilité (ADR-009, règle 3) -->
         <flyway.version>12.4.0</flyway.version>
@@ -54,6 +60,16 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- uuid-creator : UUID v7 (RFC 9562) pour les identifiants d'aggregate (ADR-014).
+             Utilisée DANS le domaine pur : c'est une lib purement utilitaire (génère des bytes
+             selon une spec publique, zéro I/O, zéro framework, zéro effet de bord global),
+             explicitement autorisée par l'amendement ADR-003 documenté dans ADR-014. -->
+        <dependency>
+            <groupId>com.github.f4b6a3</groupId>
+            <artifactId>uuid-creator</artifactId>
+            <version>${uuid-creator.version}</version>
         </dependency>
 
         <!-- Spring Modulith : modèle de modules + vérification d'isolation (ADR-001) -->
@@ -147,6 +163,29 @@
                         <postgres.image.version>${postgres.image.version}</postgres.image.version>
                     </systemPropertyVariables>
                 </configuration>
+            </plugin>
+            <!-- JaCoCo : instrumente les tests (prepare-agent) et génère le rapport de couverture.
+                 L'enforcement du seuil (≥ 80 % sur domain/, goal `check`) sera ajouté en S9,
+                 une fois le module Identity complet — inutile de casser le build avant. -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
