@@ -1,7 +1,7 @@
 package dev.ryanfoerster.atlas.identity.application.query;
 
 import dev.ryanfoerster.atlas.identity.domain.model.User;
-import dev.ryanfoerster.atlas.identity.domain.model.UserId;
+import dev.ryanfoerster.atlas.shared.domain.UserId;
 import dev.ryanfoerster.atlas.identity.domain.port.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

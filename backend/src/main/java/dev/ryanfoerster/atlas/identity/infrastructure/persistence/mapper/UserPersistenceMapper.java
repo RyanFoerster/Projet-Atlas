@@ -3,7 +3,7 @@ package dev.ryanfoerster.atlas.identity.infrastructure.persistence.mapper;
 import dev.ryanfoerster.atlas.identity.domain.model.DisplayName;
 import dev.ryanfoerster.atlas.identity.domain.model.Email;
 import dev.ryanfoerster.atlas.identity.domain.model.User;
-import dev.ryanfoerster.atlas.identity.domain.model.UserId;
+import dev.ryanfoerster.atlas.shared.domain.UserId;
 import dev.ryanfoerster.atlas.identity.infrastructure.persistence.UserJpaEntity;
 import org.springframework.stereotype.Component;
 

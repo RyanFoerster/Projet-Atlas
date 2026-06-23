@@ -9,7 +9,7 @@ import java.util.UUID;
  *
  * <p>Value object immutable et auto-validant. C'est la valeur transmise dans l'URL du lien
  * magique : qui la possède peut consommer le lien (dans sa fenêtre de validité). On la
- * modélise comme un type distinct de {@link UserId} pour éviter toute confusion entre un
+ * modélise comme un type distinct de {@code UserId} pour éviter toute confusion entre un
  * identifiant d'utilisateur et un secret d'authentification — deux UUID, deux rôles métier
  * radicalement différents.
  *

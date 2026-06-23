@@ -1,5 +1,7 @@
 package dev.ryanfoerster.atlas.identity.domain.model;
 
+import dev.ryanfoerster.atlas.shared.domain.UserId;
+
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;

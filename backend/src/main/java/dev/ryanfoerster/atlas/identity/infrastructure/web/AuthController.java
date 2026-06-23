@@ -8,7 +8,7 @@ import dev.ryanfoerster.atlas.identity.application.command.RequestMagicLinkComma
 import dev.ryanfoerster.atlas.identity.application.command.RequestMagicLinkUseCase;
 import dev.ryanfoerster.atlas.identity.application.query.GetCurrentUserUseCase;
 import dev.ryanfoerster.atlas.identity.domain.model.User;
-import dev.ryanfoerster.atlas.identity.domain.model.UserId;
+import dev.ryanfoerster.atlas.shared.domain.UserId;
 import dev.ryanfoerster.atlas.identity.infrastructure.web.dto.CompleteSignupDto;
 import dev.ryanfoerster.atlas.identity.infrastructure.web.dto.ConsumeResponseDto;
 import dev.ryanfoerster.atlas.identity.infrastructure.web.dto.CurrentUserDto;

@@ -2,7 +2,7 @@ package dev.ryanfoerster.atlas.identity.domain.port;
 
 import dev.ryanfoerster.atlas.identity.domain.model.Email;
 import dev.ryanfoerster.atlas.identity.domain.model.User;
-import dev.ryanfoerster.atlas.identity.domain.model.UserId;
+import dev.ryanfoerster.atlas.shared.domain.UserId;
 
 import java.util.Optional;
 

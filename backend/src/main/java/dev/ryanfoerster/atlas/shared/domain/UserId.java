@@ -1,4 +1,4 @@
-package dev.ryanfoerster.atlas.identity.domain.model;
+package dev.ryanfoerster.atlas.shared.domain;
 
 import com.github.f4b6a3.uuid.UuidCreator;
 

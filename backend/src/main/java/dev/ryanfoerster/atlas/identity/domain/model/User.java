@@ -1,5 +1,7 @@
 package dev.ryanfoerster.atlas.identity.domain.model;
 
+import dev.ryanfoerster.atlas.shared.domain.UserId;
+
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Locale;

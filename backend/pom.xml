@@ -214,9 +214,12 @@
                             <rules>
                                 <rule>
                                     <element>PACKAGE</element>
+                                    <!-- Tous les packages domaine de tous les modules : le `.domain`
+                                         nu (kernel shared : UserId, Weight…) ET les sous-packages
+                                         (.domain.model/.service/.exceptions…) de chaque module. -->
                                     <includes>
-                                        <include>dev.ryanfoerster.atlas.identity.domain.*</include>
-                                        <include>dev.ryanfoerster.atlas.shared.domain.*</include>
+                                        <include>dev.ryanfoerster.atlas.*.domain</include>
+                                        <include>dev.ryanfoerster.atlas.*.domain.*</include>
                                     </includes>
                                     <limits>
                                         <limit>
