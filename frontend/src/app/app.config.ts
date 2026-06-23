@@ -6,11 +6,10 @@ import {
   provideZonelessChangeDetection,
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideHttpClient, withXsrfConfiguration } from '@angular/common/http';
 import { catchError, of } from 'rxjs';
 
 import { routes } from './app.routes';
-import { apiInterceptor } from './core/api.interceptor';
 import { AuthService } from './auth/auth.service';
 
 export const appConfig: ApplicationConfig = {
@@ -19,7 +18,9 @@ export const appConfig: ApplicationConfig = {
     // Zoneless explicite (pas de zone.js) — change detection pilotée par les signals.
     provideZonelessChangeDetection(),
     provideRouter(routes),
-    provideHttpClient(withInterceptors([apiInterceptor])),
+    // Same-origin (ADR-018) → support XSRF natif d'Angular : lit le cookie XSRF-TOKEN et pose
+    // l'en-tête X-XSRF-TOKEN sur les requêtes mutantes. Les noms correspondent aux défauts de Spring.
+    provideHttpClient(withXsrfConfiguration({ cookieName: 'XSRF-TOKEN', headerName: 'X-XSRF-TOKEN' })),
     // Au démarrage : GET /me. Double rôle (ADR-018) :
     //  1. réhydrate la session si elle existe (currentUser peuplé) ;
     //  2. amorce le cookie XSRF-TOKEN, nécessaire au tout premier POST (login).
