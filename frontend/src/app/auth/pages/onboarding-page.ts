@@ -13,7 +13,7 @@ import { AtlasButton } from '../../ui/atlas-button';
   template: `
     <atlas-focus-layout>
       <div class="text-center">
-        <p class="font-sans text-caption uppercase tracking-[0.1em] text-[var(--text-tertiary)]">Bienvenue</p>
+        <p class="font-sans text-caption uppercase tracking-[0.1em] text-[var(--text-tertiary)]">Dernière étape</p>
         <h1 class="mt-3 font-display text-h1 uppercase text-[var(--text-primary)]">Ton nom de coach</h1>
         <p class="mx-auto mt-4 max-w-[34ch] font-sans text-body text-[var(--text-secondary)]">
           C'est sous ce nom que tu dirigeras ton écurie. Tu pourras le changer plus tard.
