@@ -41,6 +41,7 @@ Atlas est un **jeu de coaching fitness type Football Manager** où le joueur dir
 - **TypeScript 5.9.x**
 - **Tailwind CSS** pour le styling, **pas d'Angular Material** — design custom
 - Composants custom, pas de lib UI lourde
+- **Design system Atlas** : la DA complète est documentée dans `docs/design-system/atlas-design-system.md` avec preview vivante dans `docs/design-system/preview.html`. C'est la **source de vérité visuelle** du projet (voir ADR-016). Toute création ou modification de composant Angular doit s'y référer en amont. Direction : sport-science + antique sobre, sans ornement décoratif, typographie comme signature, dark mode = identité signature.
 
 ### Tests
 - **JUnit Jupiter 6.x** + **AssertJ** pour les assertions lisibles (hérité du BOM Boot 4.1)
@@ -96,7 +97,7 @@ Le dépôt est un **monorepo** avec un sous-dossier par application (cf. ADR-010
 atlas/
 ├── backend/            # application Spring Boot — racine Maven (backend/pom.xml + Maven wrapper ./mvnw)
 ├── frontend/           # application Angular 22
-├── docs/               # vision, glossaire, ADRs, sprints, learning (contexte global)
+├── docs/               # vision, glossaire, ADRs, sprints, learning, design-system (contexte global)
 ├── scripts/            # scripts dev (dev-start.sh, db-reset.sh)
 ├── docker-compose.yml  # PostgreSQL local pour le dev
 └── CLAUDE.md           # ce document
@@ -193,7 +194,70 @@ Chaque feature/PR a une **definition of done** documentaire :
 
 ---
 
-## 6. Mode de collaboration Claude ↔ Ryan
+## 6. Design system et travail frontend
+
+> Cette section régit toute production de code frontend. Elle est non-négociable au même titre que les règles DDD pour le backend. Référence formelle : ADR-016.
+
+### Source de vérité
+
+Le design system d'Atlas vit dans `docs/design-system/`. Deux fichiers de référence :
+
+- **`atlas-design-system.md`** : spec complète (tokens de couleur, typographie, espacement, composants, layouts, voix éditoriale, motion, accessibilité)
+- **`preview.html`** : page HTML statique de démo qui montre les tokens et composants en vrai, dans les deux modes. À ouvrir dans un navigateur quand on conçoit une nouvelle page.
+
+### Direction visuelle (rappel)
+
+- **Sport-science + antique sobre, sans ornement décoratif.** Aucun méandre grec, laurel, colonne, pattern antique. La référence antique passe uniquement par la **typographie** (display serif lapidaire) et la **palette minérale** (bronze, marbre, ocre, encre).
+- **Dark mode = identité signature** (mode par défaut). Light mode = version claire neutre, plus sobre.
+- Sobriété confiante, densité intelligente, sérieux scientifique. Pas de coach motivateur, pas de gradient flashy, pas de gamification arcade.
+
+### Règles obligatoires
+
+1. **Lecture préalable obligatoire** : avant de coder ou modifier un composant Angular, consulter la section pertinente de `atlas-design-system.md`. Si le composant ou pattern n'y est pas, **s'arrêter et demander** plutôt qu'inventer.
+
+2. **Pas de design improvisé** : aucune classe Tailwind sortie du chapeau, aucune couleur en dur, aucune font hors du système. Tout passe par les tokens (CSS variables ou classes Tailwind du système). Si un token manque pour un cas légitime, on l'ajoute au système d'abord, on l'utilise ensuite.
+
+3. **Pas de composant UI externe** : pas d'Angular Material, pas de PrimeNG, pas de lib UI lourde. Tous les composants sont custom, basés sur le design system.
+
+4. **Cohérence dark / light dès la création** : tout composant doit fonctionner dans les deux modes. Tester systématiquement les deux avant de considérer le composant terminé.
+
+5. **Accessibilité minimale** : focus visibles, contrastes WCAG AA, support clavier complet, attributs ARIA pertinents. Documenté dans le design system, non-optionnel.
+
+### Quand introduire un nouveau composant ou pattern
+
+Si une page nécessite un composant ou pattern absent du design system, la procédure est :
+
+1. Identifier le besoin précis et le nommer (ex : "j'ai besoin d'un timeline pour la progression hebdo")
+2. Vérifier qu'aucun composant existant ne couvre déjà ce besoin (préférer la composition à la création)
+3. Si nouveau composant nécessaire : proposer sa spec (anatomie, états, variants, comportement) AVANT de coder, dans une discussion avec Ryan
+4. Une fois validé, ajouter sa spec à `atlas-design-system.md`
+5. Mettre à jour `preview.html` pour le montrer en vrai
+6. Coder le composant Angular en référence à cette spec
+
+Aucun nouveau composant ne doit apparaître dans une page sans avoir d'abord été spécifié dans le design system.
+
+### Iconographie
+
+Lucide uniquement. Tailles standardisées définies dans le design system. Pas d'icônes décoratives ou illustratives — l'iconographie est purement fonctionnelle.
+
+### Motion
+
+Économie de motion. Les transitions servent à éclaircir un changement d'état, pas à impressionner. Durées et easings standardisés dans le design system. Pas d'animation gratuite, pas de parallax, pas d'effet scroll-jacking.
+
+### Voix éditoriale
+
+Tous les textes UI suivent la voix définie dans le design system :
+- Français (audience belge en priorité, internationalisation post-MVP)
+- Deuxième personne ("Ton athlète a battu son record")
+- Rigueur technique sans jargon obscur
+- Pas de superlatifs marketing
+- Jamais en mode coach motivateur (pas de "LET'S GO", pas de "BEAST MODE")
+
+Si un texte UI est ajouté ou modifié, vérifier qu'il respecte ce ton avant de commiter.
+
+---
+
+## 7. Mode de collaboration Claude ↔ Ryan
 
 > Cette section définit comment Claude (Code, Cowork, ou autre instance) doit travailler avec Ryan. Ryan est le tech lead du projet. Claude est un copilote, pas un architecte.
 
@@ -273,6 +337,7 @@ Ces documents sont **publiables sur le devblog** plus tard avec un peu d'adaptat
 - **Ne pas produire de code sans tests** quand il s'agit de logique métier. TDD strict sur le domaine.
 - **Ne pas inventer de versions de libs.** Toujours vérifier dans le `pom.xml` actuel et respecter les versions pinées.
 - **Ne pas mélanger plusieurs sujets dans une session.** Une session = un objectif clair, idéalement issu d'une partie d'un sprint.
+- **Ne pas improviser de design.** Pour toute production frontend, lire le design system d'abord (voir §6).
 
 ### Mode Socratique (occasionnel)
 
@@ -291,9 +356,9 @@ Claude doit rappeler ce principe de temps en temps, surtout quand un concept par
 
 ---
 
-## 7. Workflow de sprint
+## 8. Workflow de sprint
 
-Les sprints suivent le pattern défini dans `docs/sprints/README.md` (à créer). Vue d'ensemble :
+Les sprints suivent le pattern défini dans `docs/sprints/README.md`. Vue d'ensemble :
 
 1. **Vertical slicing** : chaque sprint produit une feature utilisateur visible qui traverse toutes les couches.
 2. **Prompts structurés** : chaque sprint a son prompt Claude Code prédéfini dans `docs/sprints/sprint-XX-<nom>/prompt.md`.
@@ -315,9 +380,9 @@ Plan global des sprints (révisable) :
 
 ---
 
-## 8. Pour démarrer une session Claude Code
+## 9. Pour démarrer une session Claude Code
 
-> **Localisation du code** : le code backend (Spring Boot) vit dans `backend/`, le frontend (Angular) dans `frontend/`. La doc, les ADRs et les sprints restent à la racine sous `docs/`. Les commandes Maven se lancent via `./mvnw` depuis `backend/`. Voir ADR-010 pour la structure monorepo.
+> **Localisation du code** : le code backend (Spring Boot) vit dans `backend/`, le frontend (Angular) dans `frontend/`. La doc, les ADRs, les sprints et le design system restent à la racine sous `docs/`. Les commandes Maven se lancent via `./mvnw` depuis `backend/`. Voir ADR-010 pour la structure monorepo.
 
 Quand tu (Claude Code) démarres une session sur Atlas, vérifie dans cet ordre :
 
@@ -326,11 +391,12 @@ Quand tu (Claude Code) démarres une session sur Atlas, vérifie dans cet ordre 
 3. Tu as lu **docs/domain/glossary.md** pour parler le bon langage métier.
 4. Tu as parcouru les **ADRs** dans `docs/adr/` pour connaître les décisions structurantes.
 5. Tu as lu le **prompt du sprint en cours** dans `docs/sprints/sprint-XX-<nom>/prompt.md`.
-6. Si une règle de CLAUDE.md te paraît incompatible avec la tâche demandée, **arrête et demande à Ryan** avant de coder.
+6. **Si la session touche au frontend** (création/modification de composant Angular, page, layout, styling) : tu as également lu `docs/design-system/atlas-design-system.md` et ouvert `docs/design-system/preview.html` pour avoir le système en tête.
+7. Si une règle de CLAUDE.md te paraît incompatible avec la tâche demandée, **arrête et demande à Ryan** avant de coder.
 
 Bonne session.
 
 ---
 
-*Dernière mise à jour : sprint 0 / initial bootstrap*
+*Dernière mise à jour : sprint 1 — intégration du design system Atlas (ADR-016) et section §6 dédiée.*
 *Maintenu par : Ryan Foerster*

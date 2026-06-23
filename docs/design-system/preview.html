@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  @keyframes atlas-spin { to { transform: rotate(360deg); } }
+  [data-theme="dark"] {
+    --surface-base:#14130E; --surface-sunken:#0F0E0A; --surface-raised:#1D1B15; --surface-raised-2:#26241C;
+    --border-subtle:rgba(236,231,220,0.07); --border-default:rgba(236,231,220,0.13); --border-strong:rgba(236,231,220,0.22);
+    --text-primary:#ECE7DC; --text-secondary:#BDB6A6; --text-tertiary:#8B8474; --text-disabled:#5C5749; --text-inverted:#14130E;
+    --accent:#C7A05C; --accent-hover:#D6B06B; --accent-active:#AE8848; --accent-surface:rgba(199,160,92,0.14); --accent-text-on:#14130E;
+    --success:#8FA86A; --success-surface:rgba(143,168,106,0.14); --warning:#D49A45; --warning-surface:rgba(212,154,69,0.14);
+    --danger:#C26049; --danger-surface:rgba(194,96,73,0.14); --info:#7C93B8; --info-surface:rgba(124,147,184,0.14);
+    --dv1:#C7A05C; --dv2:#C97A57; --dv3:#8FA86A; --dv4:#7C93B8; --dv5:#A6789C; --dv6:#5FA292; --dv7:#CDA64A;
+    --shadow-md:0 1px 2px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.35);
+  }
+  [data-theme="light"] {
+    --surface-base:#F4F1EA; --surface-sunken:#ECE7DC; --surface-raised:#FBF9F4; --surface-raised-2:#FFFFFF;
+    --border-subtle:rgba(20,19,14,0.08); --border-default:rgba(20,19,14,0.14); --border-strong:rgba(20,19,14,0.26);
+    --text-primary:#221F18; --text-secondary:#4F4A3E; --text-tertiary:#7A7464; --text-disabled:#ABA493; --text-inverted:#FBF9F4;
+    --accent:#8A6A2E; --accent-hover:#9C7B38; --accent-active:#765925; --accent-surface:rgba(138,106,46,0.12); --accent-text-on:#FBF9F4;
+    --success:#5E7A44; --success-surface:rgba(94,122,68,0.12); --warning:#A9772A; --warning-surface:rgba(169,119,42,0.12);
+    --danger:#A8472F; --danger-surface:rgba(168,71,47,0.12); --info:#4F668C; --info-surface:rgba(79,102,140,0.12);
+    --dv1:#8A6A2E; --dv2:#A85C3D; --dv3:#5E7A44; --dv4:#4F668C; --dv5:#82557A; --dv6:#3F7E70; --dv7:#A57F22;
+    --shadow-md:0 1px 2px rgba(20,19,14,0.06), 0 8px 24px rgba(20,19,14,0.08);
+  }
+</style>
+</helmet>
+<div data-theme="{{ theme }}" style="background:var(--surface-base); color:var(--text-primary); font-family:'IBM Plex Sans',sans-serif; min-height:100vh; transition:background .3s ease, color .3s ease;">
+
+  <!-- ===== Top bar ===== -->
+  <div style="position:sticky; top:0; z-index:20; display:flex; align-items:center; justify-content:space-between; padding:0 40px; height:56px; background:color-mix(in srgb, var(--surface-base) 88%, transparent); backdrop-filter:blur(12px); border-bottom:1px solid var(--border-subtle);">
+    <div style="display:flex; align-items:baseline; gap:16px;">
+      <span style="font-family:'Cormorant',serif; font-weight:600; font-size:22px; letter-spacing:0.22em; text-transform:uppercase;">Atlas</span>
+      <span style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.08em; color:var(--text-tertiary); text-transform:uppercase;">Design System</span>
+    </div>
+    <button onClick="{{ toggle }}" style="display:flex; align-items:center; gap:8px; padding:8px 14px; border-radius:8px; border:1px solid var(--border-default); background:var(--surface-raised); color:var(--text-secondary); font-family:'IBM Plex Mono',monospace; font-size:12px; cursor:pointer; transition:all .15s ease;" style-hover="border-color:var(--border-strong); color:var(--text-primary);">
+      {{ themeLabel }}
+    </button>
+  </div>
+
+  <div style="max-width:1120px; margin:0 auto; padding:56px 40px 112px;">
+
+    <!-- ===== Header ===== -->
+    <div style="margin-bottom:72px;">
+      <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--accent); margin-bottom:18px;">Référence visuelle — frontend</div>
+      <h1 style="font-family:'Cormorant',serif; font-weight:500; font-size:54px; line-height:1.04; letter-spacing:0.01em; margin:0 0 20px;">Sport-science antique, sobre.</h1>
+      <p style="max-width:64ch; font-size:17px; line-height:1.65; color:var(--text-secondary); margin:0;">Le système au complet — couleur, typographie, composants, layouts — dans ses deux modes. Bascule dark / light en haut à droite. L'antiquité par la lettre gravée et le pigment minéral, jamais par l'ornement.</p>
+    </div>
+
+    <!-- ===== 1. COULEUR ===== -->
+    <div style="font-family:'Cormorant',serif; font-weight:600; font-size:28px; letter-spacing:0.16em; text-transform:uppercase; margin-bottom:8px;">01 — Couleur</div>
+    <div style="height:1px; background:var(--border-default); margin-bottom:32px;"></div>
+
+    <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:16px;">Surfaces</div>
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:32px;">
+      <div style="border:1px solid var(--border-default); border-radius:10px; overflow:hidden; background:var(--surface-raised);"><div style="height:60px; background:var(--surface-base); border-bottom:1px solid var(--border-subtle);"></div><div style="padding:10px 12px;"><div style="font-size:13px; font-weight:500;">Base</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text-tertiary); margin-top:3px;">D #14130E · L #F4F1EA</div></div></div>
+      <div style="border:1px solid var(--border-default); border-radius:10px; overflow:hidden; background:var(--surface-raised);"><div style="height:60px; background:var(--surface-sunken); border-bottom:1px solid var(--border-subtle);"></div><div style="padding:10px 12px;"><div style="font-size:13px; font-weight:500;">Sunken</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text-tertiary); margin-top:3px;">D #0F0E0A · L #ECE7DC</div></div></div>
+      <div style="border:1px solid var(--border-default); border-radius:10px; overflow:hidden; background:var(--surface-raised);"><div style="height:60px; background:var(--surface-raised); border-bottom:1px solid var(--border-subtle);"></div><div style="padding:10px 12px;"><div style="font-size:13px; font-weight:500;">Raised</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text-tertiary); margin-top:3px;">D #1D1B15 · L #FBF9F4</div></div></div>
+      <div style="border:1px solid var(--border-default); border-radius:10px; overflow:hidden; background:var(--surface-raised);"><div style="height:60px; background:var(--surface-raised-2); border-bottom:1px solid var(--border-subtle);"></div><div style="padding:10px 12px;"><div style="font-size:13px; font-weight:500;">Raised 2</div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text-tertiary); margin-top:3px;">D #26241C · L #FFFFFF</div></div></div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:28px; margin-bottom:32px;">
+      <div>
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:16px;">Accent — bronze</div>
+        <div style="display:flex; gap:10px;">
+          <div style="flex:1;"><div style="height:60px; border-radius:10px; background:var(--accent);"></div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text-tertiary); margin-top:8px; text-align:center;">default</div></div>
+          <div style="flex:1;"><div style="height:60px; border-radius:10px; background:var(--accent-hover);"></div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text-tertiary); margin-top:8px; text-align:center;">hover</div></div>
+          <div style="flex:1;"><div style="height:60px; border-radius:10px; background:var(--accent-active);"></div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text-tertiary); margin-top:8px; text-align:center;">active</div></div>
+          <div style="flex:1;"><div style="height:60px; border-radius:10px; background:var(--accent-surface);"></div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text-tertiary); margin-top:8px; text-align:center;">surface</div></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:16px;">Sémantique</div>
+        <div style="display:flex; gap:10px;">
+          <div style="flex:1;"><div style="height:60px; border-radius:10px; background:var(--success);"></div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text-tertiary); margin-top:8px; text-align:center;">success</div></div>
+          <div style="flex:1;"><div style="height:60px; border-radius:10px; background:var(--warning);"></div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text-tertiary); margin-top:8px; text-align:center;">warning</div></div>
+          <div style="flex:1;"><div style="height:60px; border-radius:10px; background:var(--danger);"></div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text-tertiary); margin-top:8px; text-align:center;">danger</div></div>
+          <div style="flex:1;"><div style="height:60px; border-radius:10px; background:var(--info);"></div><div style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--text-tertiary); margin-top:8px; text-align:center;">info</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:16px;">Data viz — 7 pigments</div>
+    <div style="display:flex; border-radius:12px; overflow:hidden; border:1px solid var(--border-default); margin-bottom:72px;">
+      <div style="flex:1; height:48px; background:var(--dv1);"></div><div style="flex:1; height:48px; background:var(--dv2);"></div><div style="flex:1; height:48px; background:var(--dv3);"></div><div style="flex:1; height:48px; background:var(--dv4);"></div><div style="flex:1; height:48px; background:var(--dv5);"></div><div style="flex:1; height:48px; background:var(--dv6);"></div><div style="flex:1; height:48px; background:var(--dv7);"></div>
+    </div>
+
+    <!-- ===== 2. TYPOGRAPHIE ===== -->
+    <div style="font-family:'Cormorant',serif; font-weight:600; font-size:28px; letter-spacing:0.16em; text-transform:uppercase; margin-bottom:8px;">02 — Typographie</div>
+    <div style="height:1px; background:var(--border-default); margin-bottom:32px;"></div>
+    <div style="display:flex; flex-direction:column; gap:22px; margin-bottom:72px;">
+      <div style="display:flex; align-items:baseline; gap:24px; border-bottom:1px solid var(--border-subtle); padding-bottom:22px;"><div style="flex:1; font-family:'Cormorant',serif; font-weight:500; font-size:52px; line-height:1.02;">Nouveau record.</div><div style="width:210px; flex:none; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-tertiary); line-height:1.7;">Display · Cormorant 500<br>54 / 1.05 / +0.5</div></div>
+      <div style="display:flex; align-items:baseline; gap:24px; border-bottom:1px solid var(--border-subtle); padding-bottom:22px;"><div style="flex:1; font-family:'Cormorant',serif; font-weight:600; font-size:34px; letter-spacing:0.06em; text-transform:uppercase; line-height:1.1;">Modèle Fitness-Fatigue</div><div style="width:210px; flex:none; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-tertiary); line-height:1.7;">H1 · Cormorant 600<br>34 / 1.1 / +1.0 caps</div></div>
+      <div style="display:flex; align-items:baseline; gap:24px; border-bottom:1px solid var(--border-subtle); padding-bottom:22px;"><div style="flex:1; font-family:'IBM Plex Sans',sans-serif; font-weight:600; font-size:22px;">Ton athlète miroir progresse</div><div style="width:210px; flex:none; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-tertiary); line-height:1.7;">H2 · Plex Sans 600<br>22 / 1.3</div></div>
+      <div style="display:flex; align-items:baseline; gap:24px; border-bottom:1px solid var(--border-subtle); padding-bottom:22px;"><div style="flex:1; font-family:'IBM Plex Sans',sans-serif; font-weight:400; font-size:16px; line-height:1.65; color:var(--text-secondary); max-width:62ch;">Le principe SAID décrit l'adaptation spécifique aux demandes imposées : l'organisme s'ajuste précisément au stress qu'on lui applique.</div><div style="width:210px; flex:none; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-tertiary); line-height:1.7;">Body · Plex Sans 400<br>16 / 1.65</div></div>
+      <div style="display:flex; align-items:baseline; gap:24px; border-bottom:1px solid var(--border-subtle); padding-bottom:22px;"><div style="flex:1; font-family:'IBM Plex Sans',sans-serif; font-weight:500; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-tertiary);">Programme actif · Deload semaine 5</div><div style="width:210px; flex:none; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-tertiary); line-height:1.7;">Caption · Plex Sans 500<br>11 / +0.1em caps</div></div>
+      <div style="display:flex; align-items:baseline; gap:24px;"><div style="flex:1; font-family:'IBM Plex Mono',monospace; font-weight:500; font-size:15px; display:flex; gap:24px;"><span>120<span style="color:var(--text-tertiary);">kg</span></span><span>RPE&nbsp;8.5</span><span>87.5%</span><span style="color:var(--success);">+5kg</span></div><div style="width:210px; flex:none; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--text-tertiary); line-height:1.7;">Data · Plex Mono 500<br>15 / tabular</div></div>
+    </div>
+
+    <!-- ===== 3. COMPOSANTS ===== -->
+    <div style="font-family:'Cormorant',serif; font-weight:600; font-size:28px; letter-spacing:0.16em; text-transform:uppercase; margin-bottom:8px;">03 — Composants</div>
+    <div style="height:1px; background:var(--border-default); margin-bottom:32px;"></div>
+
+    <!-- Buttons -->
+    <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:18px;">Boutons — variantes</div>
+    <div style="display:flex; flex-wrap:wrap; gap:14px; align-items:center; margin-bottom:24px;">
+      <button style="display:inline-flex; align-items:center; justify-content:center; height:40px; padding:0 18px; border-radius:8px; border:none; font-family:'IBM Plex Sans'; font-weight:600; font-size:15px; cursor:pointer; background:var(--accent); color:var(--accent-text-on); transition:background .15s ease;" style-hover="background:var(--accent-hover);">Lancer le cycle</button>
+      <button style="display:inline-flex; align-items:center; justify-content:center; height:40px; padding:0 18px; border-radius:8px; font-family:'IBM Plex Sans'; font-weight:600; font-size:15px; cursor:pointer; background:var(--surface-raised); color:var(--text-primary); border:1px solid var(--border-default); transition:all .15s ease;" style-hover="border-color:var(--border-strong); background:var(--surface-raised-2);">Annuler</button>
+      <button style="display:inline-flex; align-items:center; justify-content:center; height:40px; padding:0 18px; border-radius:8px; border:none; font-family:'IBM Plex Sans'; font-weight:600; font-size:15px; cursor:pointer; background:transparent; color:var(--text-secondary); transition:all .15s ease;" style-hover="background:var(--accent-surface); color:var(--text-primary);">Détails</button>
+      <button style="display:inline-flex; align-items:center; justify-content:center; height:40px; padding:0 18px; border-radius:8px; border:none; font-family:'IBM Plex Sans'; font-weight:600; font-size:15px; cursor:pointer; background:var(--danger); color:var(--text-inverted); transition:filter .15s ease;" style-hover="filter:brightness(1.1);">Retirer l'athlète</button>
+    </div>
+
+    <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:18px;">Tailles &amp; états</div>
+    <div style="display:flex; flex-wrap:wrap; gap:14px; align-items:center; margin-bottom:40px;">
+      <button style="display:inline-flex; align-items:center; height:32px; padding:0 14px; border-radius:8px; border:none; font-family:'IBM Plex Sans'; font-weight:600; font-size:13px; cursor:pointer; background:var(--accent); color:var(--accent-text-on);">Small</button>
+      <button style="display:inline-flex; align-items:center; height:40px; padding:0 18px; border-radius:8px; border:none; font-family:'IBM Plex Sans'; font-weight:600; font-size:15px; cursor:pointer; background:var(--accent); color:var(--accent-text-on);">Medium</button>
+      <button style="display:inline-flex; align-items:center; height:48px; padding:0 22px; border-radius:8px; border:none; font-family:'IBM Plex Sans'; font-weight:600; font-size:16px; cursor:pointer; background:var(--accent); color:var(--accent-text-on);">Large</button>
+      <button disabled style="display:inline-flex; align-items:center; height:40px; padding:0 18px; border-radius:8px; border:none; font-family:'IBM Plex Sans'; font-weight:600; font-size:15px; background:var(--accent); color:var(--accent-text-on); opacity:0.4; pointer-events:none;">Disabled</button>
+      <button style="display:inline-flex; align-items:center; gap:9px; height:40px; padding:0 18px; border-radius:8px; font-family:'IBM Plex Sans'; font-weight:600; font-size:15px; background:var(--surface-raised); color:var(--text-secondary); border:1px solid var(--border-default);"><span style="display:inline-block; width:15px; height:15px; border:2px solid var(--text-disabled); border-top-color:var(--text-primary); border-radius:50%; animation:atlas-spin .7s linear infinite;"></span>Chargement</button>
+    </div>
+
+    <!-- Inputs -->
+    <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:18px;">Champs</div>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-bottom:40px;">
+      <div style="display:flex; flex-direction:column; gap:7px;">
+        <label style="font-family:'IBM Plex Sans'; font-weight:500; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-tertiary);">Nom de l'athlète</label>
+        <input type="text" value="Marcus Vélaris" style="height:40px; padding:0 12px; border-radius:8px; background:var(--surface-sunken); color:var(--text-primary); font-family:'IBM Plex Sans'; font-size:15px; border:1px solid var(--border-default); outline:none;">
+        <span style="font-family:'IBM Plex Sans'; font-size:13px; color:var(--text-tertiary);">Visible sur sa fiche.</span>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:7px;">
+        <label style="font-family:'IBM Plex Sans'; font-weight:500; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-tertiary);">Poids de barre</label>
+        <div style="position:relative;">
+          <input type="text" value="110" style="width:100%; height:40px; padding:0 38px 0 12px; border-radius:8px; background:var(--surface-sunken); color:var(--text-primary); font-family:'IBM Plex Mono'; font-size:15px; border:1px solid var(--accent); outline:none; box-shadow:0 0 0 2px var(--surface-base), 0 0 0 4px var(--accent);">
+          <span style="position:absolute; right:12px; top:50%; transform:translateY(-50%); font-family:'IBM Plex Mono'; font-size:13px; color:var(--text-tertiary);">kg</span>
+        </div>
+        <span style="font-family:'IBM Plex Sans'; font-size:13px; color:var(--text-tertiary);">État focus.</span>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:7px;">
+        <label style="font-family:'IBM Plex Sans'; font-weight:500; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-tertiary);">1RM estimé</label>
+        <div style="position:relative;">
+          <input type="text" value="145" style="width:100%; height:40px; padding:0 38px 0 12px; border-radius:8px; background:var(--surface-sunken); color:var(--text-primary); font-family:'IBM Plex Mono'; font-size:15px; border:1px solid var(--danger); outline:none;">
+          <span style="position:absolute; right:12px; top:50%; transform:translateY(-50%); font-family:'IBM Plex Mono'; font-size:13px; color:var(--text-tertiary);">kg</span>
+        </div>
+        <span style="font-family:'IBM Plex Sans'; font-size:13px; color:var(--danger); display:flex; align-items:center; gap:5px;">Dépasse le maximum théorique.</span>
+      </div>
+    </div>
+
+    <!-- Cards + badges -->
+    <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:18px;">Cards &amp; badges</div>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-bottom:24px;">
+      <div style="border-radius:12px; background:var(--surface-raised); border:1px solid var(--border-default); padding:22px;"><div style="font-family:'IBM Plex Sans'; font-weight:600; font-size:18px; margin-bottom:8px;">Basic</div><div style="font-size:14px; line-height:1.6; color:var(--text-secondary);">Surface élevée, bordure default, padding 24px.</div></div>
+      <div style="border-radius:12px; background:var(--surface-raised); border:1px solid var(--border-default); padding:22px; cursor:pointer; transition:all .15s ease;" style-hover="border-color:var(--border-strong); box-shadow:var(--shadow-md);"><div style="font-family:'IBM Plex Sans'; font-weight:600; font-size:18px; margin-bottom:8px;">Interactive</div><div style="font-size:14px; line-height:1.6; color:var(--text-secondary);">Survole-la : bordure + ombre.</div></div>
+      <div style="border-radius:12px; background:var(--surface-raised); padding:22px; border:1px solid color-mix(in srgb, var(--accent) 40%, transparent); box-shadow:inset 0 0 0 1px var(--accent-surface);"><div style="font-family:'IBM Plex Sans'; font-weight:600; font-size:18px; margin-bottom:8px;">Highlighted</div><div style="font-size:14px; line-height:1.6; color:var(--text-secondary);">Bordure bronze : élément actif.</div></div>
+    </div>
+    <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:40px;">
+      <span style="display:inline-flex; align-items:center; height:22px; padding:0 9px; border-radius:6px; font-family:'IBM Plex Sans'; font-weight:500; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; background:var(--success-surface); color:var(--success);">PR</span>
+      <span style="display:inline-flex; align-items:center; height:22px; padding:0 9px; border-radius:6px; font-family:'IBM Plex Sans'; font-weight:500; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; background:var(--warning-surface); color:var(--warning);">Deload</span>
+      <span style="display:inline-flex; align-items:center; height:22px; padding:0 9px; border-radius:6px; font-family:'IBM Plex Sans'; font-weight:500; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; background:var(--accent-surface); color:var(--accent);">Peak</span>
+      <span style="display:inline-flex; align-items:center; height:22px; padding:0 9px; border-radius:6px; font-family:'IBM Plex Sans'; font-weight:500; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; background:var(--danger-surface); color:var(--danger);">Blessé</span>
+      <span style="display:inline-flex; align-items:center; height:22px; padding:0 9px; border-radius:6px; font-family:'IBM Plex Sans'; font-weight:500; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; background:var(--surface-raised-2); color:var(--text-tertiary); border:1px solid var(--border-default);">Hors-saison</span>
+    </div>
+
+    <!-- ===== 4. EN SITUATION — dashboard ===== -->
+    <div style="font-family:'Cormorant',serif; font-weight:600; font-size:28px; letter-spacing:0.16em; text-transform:uppercase; margin-bottom:8px;">04 — En situation</div>
+    <div style="height:1px; background:var(--border-default); margin-bottom:32px;"></div>
+
+    <div style="border-radius:16px; background:var(--surface-raised); border:1px solid var(--border-default); padding:32px; box-shadow:var(--shadow-md);">
+      <!-- entity header -->
+      <div style="display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:28px; flex-wrap:wrap; gap:16px;">
+        <div>
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:6px;">
+            <span style="font-family:'IBM Plex Sans'; font-weight:500; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-tertiary);">Écurie · Athlète miroir</span>
+            <span style="display:inline-flex; align-items:center; height:20px; padding:0 8px; border-radius:6px; font-family:'IBM Plex Sans'; font-weight:500; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; background:var(--warning-surface); color:var(--warning);">Deload S5</span>
+          </div>
+          <div style="font-family:'Cormorant',serif; font-weight:600; font-size:34px; letter-spacing:0.05em; text-transform:uppercase; line-height:1;">Marcus Vélaris</div>
+        </div>
+        <button style="display:inline-flex; align-items:center; height:36px; padding:0 16px; border-radius:8px; border:none; font-family:'IBM Plex Sans'; font-weight:600; font-size:14px; cursor:pointer; background:var(--accent); color:var(--accent-text-on);">Ouvrir le programme</button>
+      </div>
+
+      <!-- stat row -->
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:18px;">
+        <div style="border-radius:12px; background:var(--surface-base); border:1px solid var(--border-subtle); padding:18px;"><div style="font-family:'IBM Plex Sans'; font-weight:500; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:12px;">1RM Bench</div><div style="font-family:'IBM Plex Mono'; font-weight:500; font-size:30px;">120<span style="font-size:18px; color:var(--text-tertiary);">kg</span></div><div style="font-family:'IBM Plex Mono'; font-size:12px; color:var(--success); margin-top:8px;">↑ +5 kg vs cycle précédent</div></div>
+        <div style="border-radius:12px; background:var(--surface-base); border:1px solid var(--border-subtle); padding:18px;"><div style="font-family:'IBM Plex Sans'; font-weight:500; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:12px;">Fatigue</div><div style="font-family:'IBM Plex Mono'; font-weight:500; font-size:30px;">68<span style="font-size:18px; color:var(--text-tertiary);">%</span></div><div style="font-family:'IBM Plex Mono'; font-size:12px; color:var(--warning); margin-top:8px;">deload recommandé</div></div>
+        <div style="border-radius:12px; background:var(--surface-base); border:1px solid var(--border-subtle); padding:18px;"><div style="font-family:'IBM Plex Sans'; font-weight:500; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:12px;">Wilks</div><div style="font-family:'IBM Plex Mono'; font-weight:500; font-size:30px;">412</div><div style="font-family:'IBM Plex Mono'; font-size:12px; color:var(--text-tertiary); margin-top:8px;">national · top 8%</div></div>
+      </div>
+
+      <!-- chart placeholder (bars) -->
+      <div style="border-radius:12px; background:var(--surface-base); border:1px solid var(--border-subtle); padding:20px; margin-bottom:18px;">
+        <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:18px;">
+          <div style="font-family:'IBM Plex Sans'; font-weight:600; font-size:15px;">Forme &amp; fatigue — 12 semaines</div>
+          <div style="display:flex; gap:14px; font-family:'IBM Plex Mono'; font-size:11px; color:var(--text-tertiary);"><span style="display:flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; border-radius:3px; background:var(--dv1);"></span>Forme</span><span style="display:flex; align-items:center; gap:6px;"><span style="width:10px; height:10px; border-radius:3px; background:var(--dv4);"></span>Fatigue</span></div>
+        </div>
+        <div style="display:flex; align-items:flex-end; gap:8px; height:120px;">
+          <div style="flex:1; display:flex; flex-direction:column; justify-content:flex-end; gap:3px; height:100%;"><div style="background:var(--dv1); height:42%; border-radius:3px 3px 0 0;"></div><div style="background:var(--dv4); height:18%; border-radius:3px 3px 0 0;"></div></div>
+          <div style="flex:1; display:flex; flex-direction:column; justify-content:flex-end; gap:3px; height:100%;"><div style="background:var(--dv1); height:55%; border-radius:3px 3px 0 0;"></div><div style="background:var(--dv4); height:28%; border-radius:3px 3px 0 0;"></div></div>
+          <div style="flex:1; display:flex; flex-direction:column; justify-content:flex-end; gap:3px; height:100%;"><div style="background:var(--dv1); height:64%; border-radius:3px 3px 0 0;"></div><div style="background:var(--dv4); height:38%; border-radius:3px 3px 0 0;"></div></div>
+          <div style="flex:1; display:flex; flex-direction:column; justify-content:flex-end; gap:3px; height:100%;"><div style="background:var(--dv1); height:72%; border-radius:3px 3px 0 0;"></div><div style="background:var(--dv4); height:52%; border-radius:3px 3px 0 0;"></div></div>
+          <div style="flex:1; display:flex; flex-direction:column; justify-content:flex-end; gap:3px; height:100%;"><div style="background:var(--dv1); height:60%; border-radius:3px 3px 0 0;"></div><div style="background:var(--dv4); height:68%; border-radius:3px 3px 0 0;"></div></div>
+          <div style="flex:1; display:flex; flex-direction:column; justify-content:flex-end; gap:3px; height:100%;"><div style="background:var(--dv1); height:78%; border-radius:3px 3px 0 0;"></div><div style="background:var(--dv4); height:45%; border-radius:3px 3px 0 0;"></div></div>
+          <div style="flex:1; display:flex; flex-direction:column; justify-content:flex-end; gap:3px; height:100%;"><div style="background:var(--dv1); height:88%; border-radius:3px 3px 0 0;"></div><div style="background:var(--dv4); height:58%; border-radius:3px 3px 0 0;"></div></div>
+          <div style="flex:1; display:flex; flex-direction:column; justify-content:flex-end; gap:3px; height:100%;"><div style="background:var(--dv1); height:95%; border-radius:3px 3px 0 0;"></div><div style="background:var(--dv4); height:70%; border-radius:3px 3px 0 0;"></div></div>
+        </div>
+      </div>
+
+      <!-- table -->
+      <div style="border-radius:12px; background:var(--surface-base); border:1px solid var(--border-subtle); overflow:hidden;">
+        <table style="width:100%; border-collapse:collapse;">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border-default);">
+              <th style="text-align:left; padding:12px 16px; font-family:'IBM Plex Sans'; font-weight:500; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-tertiary);">Date</th>
+              <th style="text-align:left; padding:12px 16px; font-family:'IBM Plex Sans'; font-weight:500; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-tertiary);">Exercice</th>
+              <th style="text-align:right; padding:12px 16px; font-family:'IBM Plex Sans'; font-weight:500; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-tertiary);">Sets×Reps</th>
+              <th style="text-align:right; padding:12px 16px; font-family:'IBM Plex Sans'; font-weight:500; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-tertiary);">Poids</th>
+              <th style="text-align:right; padding:12px 16px; font-family:'IBM Plex Sans'; font-weight:500; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-tertiary);">RPE</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:13px 16px; font-family:'IBM Plex Mono'; font-size:13px; color:var(--text-tertiary);">12 jun</td>
+              <td style="padding:13px 16px; font-family:'IBM Plex Sans'; font-size:15px;">Développé couché</td>
+              <td style="padding:13px 16px; text-align:right; font-family:'IBM Plex Mono'; font-size:14px; color:var(--text-secondary);">5×3</td>
+              <td style="padding:13px 16px; text-align:right; font-family:'IBM Plex Mono'; font-size:14px;">110 kg</td>
+              <td style="padding:13px 16px; text-align:right; font-family:'IBM Plex Mono'; font-size:14px; color:var(--text-secondary);">8.5</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:13px 16px; font-family:'IBM Plex Mono'; font-size:13px; color:var(--text-tertiary);">10 jun</td>
+              <td style="padding:13px 16px; font-family:'IBM Plex Sans'; font-size:15px;">Squat</td>
+              <td style="padding:13px 16px; text-align:right; font-family:'IBM Plex Mono'; font-size:14px; color:var(--text-secondary);">4×5</td>
+              <td style="padding:13px 16px; text-align:right; font-family:'IBM Plex Mono'; font-size:14px;">160 kg</td>
+              <td style="padding:13px 16px; text-align:right; font-family:'IBM Plex Mono'; font-size:14px; color:var(--text-secondary);">7.5</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border-subtle);">
+              <td style="padding:13px 16px; font-family:'IBM Plex Mono'; font-size:13px; color:var(--text-tertiary);">08 jun</td>
+              <td style="padding:13px 16px; font-family:'IBM Plex Sans'; font-size:15px;">Soulevé de terre</td>
+              <td style="padding:13px 16px; text-align:right; font-family:'IBM Plex Mono'; font-size:14px; color:var(--text-secondary);">3×3</td>
+              <td style="padding:13px 16px; text-align:right; font-family:'IBM Plex Mono'; font-size:14px;">200 kg</td>
+              <td style="padding:13px 16px; text-align:right; font-family:'IBM Plex Mono'; font-size:14px; color:var(--success);">9.0</td>
+            </tr>
+            <tr>
+              <td style="padding:13px 16px; font-family:'IBM Plex Mono'; font-size:13px; color:var(--text-tertiary);">06 jun</td>
+              <td style="padding:13px 16px; font-family:'IBM Plex Sans'; font-size:15px;">Développé militaire</td>
+              <td style="padding:13px 16px; text-align:right; font-family:'IBM Plex Mono'; font-size:14px; color:var(--text-secondary);">5×5</td>
+              <td style="padding:13px 16px; text-align:right; font-family:'IBM Plex Mono'; font-size:14px;">62.5 kg</td>
+              <td style="padding:13px 16px; text-align:right; font-family:'IBM Plex Mono'; font-size:14px; color:var(--text-secondary);">8.0</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1120,&quot;height&quot;:900},&quot;defaultTheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;'dark'|'light'&quot;}}">
+class Component extends DCLogic {
+  state = { theme: 'dark' };
+  componentDidMount() {
+    if (this.props.defaultTheme && !this._init) { this._init = true; this.setState({ theme: this.props.defaultTheme }); }
+  }
+  renderVals() {
+    const theme = this.state.theme;
+    return {
+      theme,
+      themeLabel: theme === 'dark' ? '○  Dark — signature' : '●  Light — neutre',
+      toggle: () => this.setState(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
+    };
+  }
+}
+</script>
+</body>
+</html>
