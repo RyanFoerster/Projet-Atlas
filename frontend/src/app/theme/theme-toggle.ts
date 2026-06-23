@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { ThemeService } from './theme.service';
+import { AtlasIcon } from '../ui/atlas-icon';
 
 /**
  * Bouton de bascule de thème dark/light.
@@ -15,6 +16,7 @@ import { ThemeService } from './theme.service';
 @Component({
   selector: 'atlas-theme-toggle',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [AtlasIcon],
   template: `
     <button
       type="button"
@@ -27,45 +29,8 @@ import { ThemeService } from './theme.service';
       [attr.aria-pressed]="theme.isDark()"
       (click)="theme.toggle()"
     >
-      @if (theme.isDark()) {
-        <!-- sun : en dark, le clic mène au thème clair -->
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.75"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <circle cx="12" cy="12" r="4" />
-          <path d="M12 2v2" />
-          <path d="M12 20v2" />
-          <path d="m4.93 4.93 1.41 1.41" />
-          <path d="m17.66 17.66 1.41 1.41" />
-          <path d="M2 12h2" />
-          <path d="M20 12h2" />
-          <path d="m6.34 17.66-1.41 1.41" />
-          <path d="m19.07 4.93-1.41 1.41" />
-        </svg>
-      } @else {
-        <!-- moon : en light, le clic mène au thème sombre -->
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.75"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
-        </svg>
-      }
+      <!-- en dark → sun (clic = thème clair) ; en light → moon (clic = thème sombre) -->
+      <atlas-icon [name]="theme.isDark() ? 'sun' : 'moon'" [size]="20" />
     </button>
   `,
 })
