@@ -17,7 +17,7 @@ Voir `ADR-template.md` pour le squelette à dupliquer.
 |---|-------|--------|
 | 001 | Architecture en Modular Monolith avec Spring Modulith | Accepté |
 | 002 | Stack technique Java 25 + Spring Boot 4.1 + Angular 22 | Révisé sprint 0 |
-| 003 | DDD tactique avec domaine pur (zéro dépendance framework) | Accepté |
+| 003 | DDD tactique avec domaine pur (zéro dépendance framework) | Révisé sprint 1 |
 | 004 | Modèle Fitness-Fatigue de Banister par groupe musculaire | Accepté |
 | 005 | Lien IRL ↔ jeu via athlète miroir et déblocage de programmes | Accepté |
 | 006 | Lazy compute pour la game loop idle | Accepté |
@@ -25,6 +25,7 @@ Voir `ADR-template.md` pour le squelette à dupliquer.
 | 008 | PostgreSQL + Flyway + Testcontainers pour le data layer | Accepté |
 | 009 | Stratégie de gestion des versions de dépendances | Accepté |
 | 010 | Structure monorepo symétrique (backend/ + frontend/) | Accepté |
+| 014 | UUID v7 pour les aggregates + libs purement utilitaires autorisées dans le domaine | Accepté |
 
 ## Règles
 
