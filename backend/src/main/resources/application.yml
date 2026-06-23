@@ -12,6 +12,12 @@ spring:
 
 server:
   port: 8080
+  servlet:
+    session:
+      cookie:
+        http-only: true       # inaccessible au JS (anti-XSS sur le cookie de session)
+        same-site: lax        # le cookie suit les navigations top-level, bloque la plupart des CSRF
+        secure: false         # passé à true en prod (cookie envoyé uniquement en HTTPS)
 
 # JPA / Hibernate (commun à tous les profils)
 spring.jpa:
@@ -95,3 +101,10 @@ spring:
 atlas:
   frontend:
     base-url: ${ATLAS_FRONTEND_BASE_URL:https://atlas.example}
+
+# Cookie de session en HTTPS uniquement.
+server:
+  servlet:
+    session:
+      cookie:
+        secure: true

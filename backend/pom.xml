@@ -72,6 +72,12 @@
             <version>${uuid-creator.version}</version>
         </dependency>
 
+        <!-- Spring Security 7 : authentification par session + CSRF (ADR-011, ADR-012) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
         <!-- Spring Modulith : modèle de modules + vérification d'isolation (ADR-001) -->
         <dependency>
             <groupId>org.springframework.modulith</groupId>
@@ -124,6 +130,19 @@
         <dependency>
             <groupId>org.springframework.modulith</groupId>
             <artifactId>spring-modulith-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- Helpers de test Spring Security (with(csrf()), with(user()), …) -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- Slice de test MockMvc : en Boot 4 le support @AutoConfigureMockMvc est modularisé
+             dans spring-boot-webmvc-test (n'est plus tiré par spring-boot-starter-test). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-webmvc-test</artifactId>
             <scope>test</scope>
         </dependency>
         <!-- Documenter : génération de la doc C4 des modules (ADR-001), version via BOM Modulith -->
