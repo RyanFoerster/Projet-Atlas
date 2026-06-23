@@ -1,52 +1,64 @@
-<!-- Page neutralisée sur les tokens du design system (palier I5).
-     But : vérifier fonts + palette + bascule de thème en place. La refonte
-     visuelle complète (layout Focus, voix éditoriale) arrive à l'étape I6. -->
+<!-- Page de diagnostic (smoke test) refondue avec le design system Atlas.
+     Layout Focus (§5.2) : colonne centrée étroite, fond surface-base, pas de sidebar.
+     Comportement inchangé : appel /actuator/health + affichage du statut. -->
 <main class="flex min-h-screen flex-col">
-  <header class="flex h-14 items-center justify-between border-b border-[var(--border-subtle)] px-6">
-    <span class="font-display text-[1.25rem] font-semibold uppercase tracking-[0.22em] text-[var(--text-primary)]">
-      Atlas
-    </span>
+  <header class="flex h-14 items-center justify-end px-6">
     <atlas-theme-toggle />
   </header>
 
-  <section class="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
-    <p class="font-sans text-caption uppercase tracking-[0.1em] text-[var(--text-tertiary)]">
-      Intégration design system
-    </p>
-    <h1 class="font-display text-h1 uppercase text-[var(--text-primary)]">Atlas</h1>
-    <p class="max-w-md font-sans text-body text-[var(--text-secondary)]">
-      Palette, typographie et bascule de thème en place. Bascule entre les deux modes pour vérifier
-      le rendu — la refonte de cette page suit.
-    </p>
+  <section class="flex flex-1 items-center justify-center px-6 pb-24">
+    <div class="w-full max-w-[420px] text-center">
+      <p class="font-sans text-caption uppercase tracking-[0.1em] text-[var(--text-tertiary)]">
+        Base technique
+      </p>
 
-    <div class="mt-4 inline-flex items-center gap-3 rounded-lg border border-[var(--border-default)] bg-[var(--surface-raised)] px-5 py-2.5">
-      <span class="font-sans text-body-sm text-[var(--text-tertiary)]">API backend</span>
-      @switch (apiStatus()) {
-        @case ('loading') {
-          <span class="inline-flex items-center gap-2 font-mono text-data text-[var(--text-tertiary)]">
-            <span class="h-2 w-2 rounded-full bg-[var(--text-tertiary)]"></span>
-            Vérification…
-          </span>
-        }
-        @case ('UP') {
-          <span class="inline-flex items-center gap-2 font-mono text-data text-[var(--success)]">
-            <span class="h-2 w-2 rounded-full bg-[var(--success)]"></span>
-            UP
-          </span>
-        }
-        @case ('DOWN') {
-          <span class="inline-flex items-center gap-2 font-mono text-data text-[var(--warning)]">
-            <span class="h-2 w-2 rounded-full bg-[var(--warning)]"></span>
-            DOWN
-          </span>
-        }
-        @case ('unreachable') {
-          <span class="inline-flex items-center gap-2 font-mono text-data text-[var(--danger)]">
-            <span class="h-2 w-2 rounded-full bg-[var(--danger)]"></span>
-            Injoignable
-          </span>
-        }
-      }
+      <h1 class="mt-4 font-display text-display uppercase tracking-[0.04em] text-[var(--text-primary)]">
+        Atlas
+      </h1>
+
+      <p class="mx-auto mt-5 max-w-[36ch] font-sans text-body-lg text-[var(--text-secondary)]">
+        Le frontend rend cette page et l'API répond. La fondation est posée — tout le reste se
+        construit ici.
+      </p>
+
+      <!-- Card statut (§4.3) avec Badge sémantique (§4.4) -->
+      <div class="mt-10 rounded-xl border border-[var(--border-default)] bg-[var(--surface-raised)] p-5 text-left">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <p class="font-sans text-caption uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
+              API backend
+            </p>
+            <p class="mt-1 font-mono text-body-sm text-[var(--text-tertiary)]">/actuator/health</p>
+          </div>
+
+          @switch (apiStatus()) {
+            @case ('loading') {
+              <span class="inline-flex items-center gap-1.5 rounded-md border border-[var(--border-default)] bg-[var(--surface-raised-2)] px-2 py-0.5 font-sans text-caption uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
+                <span class="h-1.5 w-1.5 rounded-full bg-[var(--text-tertiary)]"></span>
+                Vérification
+              </span>
+            }
+            @case ('UP') {
+              <span class="inline-flex items-center gap-1.5 rounded-md bg-[var(--success-surface)] px-2 py-0.5 font-sans text-caption uppercase tracking-[0.08em] text-[var(--success)]">
+                <span class="h-1.5 w-1.5 rounded-full bg-[var(--success)]"></span>
+                UP
+              </span>
+            }
+            @case ('DOWN') {
+              <span class="inline-flex items-center gap-1.5 rounded-md bg-[var(--warning-surface)] px-2 py-0.5 font-sans text-caption uppercase tracking-[0.08em] text-[var(--warning)]">
+                <span class="h-1.5 w-1.5 rounded-full bg-[var(--warning)]"></span>
+                DOWN
+              </span>
+            }
+            @case ('unreachable') {
+              <span class="inline-flex items-center gap-1.5 rounded-md bg-[var(--danger-surface)] px-2 py-0.5 font-sans text-caption uppercase tracking-[0.08em] text-[var(--danger)]">
+                <span class="h-1.5 w-1.5 rounded-full bg-[var(--danger)]"></span>
+                Injoignable
+              </span>
+            }
+          }
+        </div>
+      </div>
     </div>
   </section>
 </main>
