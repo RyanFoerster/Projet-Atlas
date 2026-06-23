@@ -30,6 +30,12 @@ il faut lui attribuer une génétique. Trois options :
    à 1.20** — la frange 1.20–1.25 restant réservée à l'aléa génétique pur (plafond dur de `Genetics` :
    1.25). Les autres axes (récupération, fibres, hypertrophie…) restent purement aléatoires.
 
+> **Boost miroir plafonné à 1.20 (sub-cap de la plage 0.80–1.25)** pour réserver la frange 1.20–1.25 à
+> l'aléa génétique pur des candidats scoutés, traduisant que **la mesure par 4 lifts ne peut pas saturer
+> le potentiel génétique théorique** : le miroir reflète tes performances *mesurées*, pas un potentiel
+> idéal qu'on ne peut pas observer par 4 lifts. (Réconcilie une suggestion initiale de plafond 1.30 — qui
+> aurait violé l'invariant `Genetics` 0.80–1.25 — en deux niveaux : sub-cap 1.20 + plafond dur 1.25.)
+
 ### Standards de force (seuils), sources citées en JavaDoc
 
 Ratios 1RM/poids de corps, **homme adulte**, [intermédiaire ; elite] — sources **ExRx.net Strength

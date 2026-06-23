@@ -21,19 +21,29 @@ pas forcément un développé couché d'élite ni une récupération parfaite.
 
 La rareté est de la **spécialisation**, pas du niveau global :
 
-- **GENERIC (65 %)** : équilibré, tous les axes proches de la moyenne (faible variance).
-- **PROMISING (25 %)** : un axe modestement au-dessus.
-- **SPECIALIST (8 %)** : un axe clairement haut.
-- **PRODIGY (2 %)** : un axe **exceptionnel** (haut de la plage), les autres axes **variables** (variance
-  élargie). Jamais « tout en haut ».
+Les tiers sont rendus **distincts par le NOMBRE d'axes spécialisés ET la magnitude** du spike — pas
+seulement la magnitude, sinon la frontière Promising/Specialist serait floue. L'« axe » spécialisé est
+soit un pattern de force, soit un groupe musculaire (axes distincts, tirés par un shuffle seedé).
 
-L'« axe » pointé est soit un pattern de force, soit un groupe musculaire (tiré aléatoirement). Le tier
-est tiré par `RarityRoller` (probabilités cumulées), la génétique correspondante par `AthleteGenerator`
-(`specializedGenetics`). Les bandes de spike sont *calibration par défaut, à revérifier au sprint 4*.
+| Tier | Proba | Base (axes « moyens ») | Bande axe(s) spécialisé(s) — force / hypertrophie | Nb axes spécialisés |
+|------|------:|------------------------|---------------------------------------------------|:-------------------:|
+| **GENERIC**    | 65 % | 0.88 – 1.05 | — (équilibré) | 0 |
+| **PROMISING**  | 25 % | 0.88 – 1.05 | 1.08 – 1.16 / 1.13 – 1.21 | 1 (modeste) |
+| **SPECIALIST** |  8 % | 0.88 – 1.05 | 1.12 – 1.22 / 1.17 – 1.27 | 2 (francs) |
+| **PRODIGY**    |  2 % | 0.85 – 1.12 | 1.20 – 1.25 / 1.25 – 1.30 | 1 (exceptionnel) |
+
+> La bande hypertrophie = bande force + 0.05 (l'hypertrophie monte jusqu'à 1.30, la force à 1.25),
+> bornée aux plages de `Genetics`. PRODIGY a une base un peu plus variable (« les autres axes restent
+> variables »). Le tier est tiré par `RarityRoller` (probabilités cumulées), la génétique par
+> `AthleteGenerator.specializedGenetics`. Bandes = *calibration par défaut, à revérifier au sprint 4*.
+
+**Différence exacte Promising vs Specialist vs Prodigy** : Promising = **un** axe modeste ;
+Specialist = **deux** axes francs (spécialisation en largeur) ; Prodigy = **un** axe exceptionnel
+(spécialisation en hauteur). Vérifié par test (seed 7) : peaks GENERIC 1.042 → PROMISING 1.192 →
+SPECIALIST 1.247 (2 axes ≥ 1.20) → PRODIGY 1.289 (1 axe).
 
 **Vérifié** (test seedé 10 000 tirages) : distribution observée GENERIC 65.4 % / PROMISING 24.6 % /
-SPECIALIST 8.1 % / PRODIGY 2.0 % — dans ±0.5 % de la cible. Et un PRODIGY pointe un axe à ~1.23 quand un
-GENERIC plafonne à ~1.09.
+SPECIALIST 8.1 % / PRODIGY 2.0 % — dans ±0.5 % de la cible.
 
 ## Conséquences
 
