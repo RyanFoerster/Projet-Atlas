@@ -1,3 +1,106 @@
-/* You can add global styles to this file, and also import other style files */
+/* Styles globaux Atlas. Le design system (tokens + mapping Tailwind) vit ici. */
 
 @import 'tailwindcss';
+@import './styles/tokens.css';
+
+/* Dark mode piloté par l'attribut [data-theme="dark"] (spec §9). Dark étant le défaut
+   sur :root, la variante `dark:` sert surtout aux rares cas où un token ne suffit pas. */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* ============================================================================
+   Mapping Tailwind v4 (équivalent CSS-first du tailwind.config.js de la spec §9).
+   On expose les tokens en utilities : bg-surface-raised, text-ink-secondary,
+   text-accent, font-display, text-h1, text-data-lg, etc. Toutes pointent vers les
+   variables CSS de tokens.css — jamais de valeur en dur ici.
+   ============================================================================ */
+@theme {
+  /* Couleurs — surfaces */
+  --color-surface-base: var(--surface-base);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-raised-2: var(--surface-raised-2);
+
+  /* Couleurs — texte (namespace "ink" pour éviter la collision avec les utilities text-*) */
+  --color-ink-primary: var(--text-primary);
+  --color-ink-secondary: var(--text-secondary);
+  --color-ink-tertiary: var(--text-tertiary);
+  --color-ink-disabled: var(--text-disabled);
+  --color-ink-inverted: var(--text-inverted);
+
+  /* Couleurs — accent bronze */
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-active: var(--accent-active);
+  --color-accent-surface: var(--accent-surface);
+
+  /* Couleurs — sémantique */
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+
+  /* Familles typographiques (spec §2.1) */
+  --font-display: 'Cormorant', serif;
+  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  /* Échelle typographique (spec §2.2) — taille / line-height / letter-spacing */
+  --text-display: 3.375rem;
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: 0.5px;
+  --text-h1: 2.125rem;
+  --text-h1--line-height: 1.1;
+  --text-h1--letter-spacing: 1px;
+  --text-h2: 1.375rem;
+  --text-h2--line-height: 1.3;
+  --text-h2--letter-spacing: -0.2px;
+  --text-h3: 1.125rem;
+  --text-h3--line-height: 1.4;
+  --text-body-lg: 1.0625rem;
+  --text-body-lg--line-height: 1.65;
+  --text-body: 0.9375rem;
+  --text-body--line-height: 1.65;
+  --text-body-sm: 0.8125rem;
+  --text-body-sm--line-height: 1.5;
+  --text-caption: 0.6875rem;
+  --text-caption--line-height: 1.4;
+  --text-caption--letter-spacing: 0.1em;
+  --text-data: 0.875rem;
+  --text-data--line-height: 1.4;
+  --text-data-lg: 1.875rem;
+  --text-data-lg--line-height: 1.1;
+}
+
+@layer base {
+  /* color-scheme suit le thème → contrôles natifs, scrollbars et form fields cohérents. */
+  :root {
+    color-scheme: dark;
+  }
+  [data-theme='light'] {
+    color-scheme: light;
+  }
+
+  body {
+    background-color: var(--surface-base);
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    /* Transition de thème douce (spec §8 : background/color en --dur-base ease-in-out). */
+    transition:
+      background-color var(--dur-base) var(--ease-in-out),
+      color var(--dur-base) var(--ease-in-out);
+  }
+}
+
+/* Respect de prefers-reduced-motion : on coupe toute animation/transition non essentielle. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

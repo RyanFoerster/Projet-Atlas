@@ -1,11 +1,34 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="utf-8">
   <title>Atlas</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+
+  <!-- Anti-flash de thème : on applique data-theme AVANT le rendu, donc avant le boot Angular.
+       Même logique que ThemeService (localStorage 'atlas-theme' > prefers-color-scheme > dark).
+       Dark est le défaut (identité signature) — aucun flash pour ce mode. -->
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('atlas-theme');
+        var theme = stored || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    })();
+  </script>
+
+  <!-- Polices (design system §2.1) : Cormorant (display serif), IBM Plex Sans (UI), IBM Plex Mono (data).
+       preconnect pour amorcer la connexion aux CDN avant le téléchargement des fichiers. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
 </head>
 <body>
   <app-root></app-root>

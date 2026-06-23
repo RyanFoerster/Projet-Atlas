@@ -1,0 +1,119 @@
+/* ============================================================================
+   Atlas — Design tokens (variables CSS)
+   Source de vérité : docs/design-system/atlas-design-system.md §1 et §8.
+   Valeurs copiées telles quelles depuis la spec — ne pas inventer.
+
+   Stratégie de thème (ADR-016) : dark = identité signature = défaut sur :root
+   (évite le flash de thème avant exécution du JS). Light = surcharge via
+   [data-theme="light"]. Le ThemeService applique data-theme sur <html>.
+   ============================================================================ */
+
+/* ===== DARK — défaut / signature ===== */
+:root,
+[data-theme='dark'] {
+  /* Surfaces */
+  --surface-base: #14130e; /* hsl(50 18% 7%)   — fond app, ink chaud */
+  --surface-sunken: #0f0e0a; /* hsl(48 20% 5%)   — zones dépressées, well */
+  --surface-raised: #1d1b15; /* hsl(45 16% 10%)  — cards */
+  --surface-raised-2: #26241c; /* hsl(48 15% 13%)  — popovers, surfaces sur card */
+  --overlay: rgba(8, 7, 5, 0.66);
+
+  /* Bordures (alpha sur blanc-marbre) */
+  --border-subtle: rgba(236, 231, 220, 0.07);
+  --border-default: rgba(236, 231, 220, 0.13);
+  --border-strong: rgba(236, 231, 220, 0.22);
+
+  /* Texte */
+  --text-primary: #ece7dc; /* hsl(41 30% 89%)  — titres, chiffres clés. AAA sur base */
+  --text-secondary: #bdb6a6; /* hsl(42 15% 70%)  — corps. AAA sur base */
+  --text-tertiary: #8b8474; /* hsl(42 9% 50%)   — méta, labels. AA */
+  --text-disabled: #5c5749; /* hsl(44 12% 32%) */
+  --text-inverted: #14130e; /* texte sur fond clair / sur accent */
+
+  /* Accent — bronze tempéré (seule couleur de marque) */
+  --accent: #c7a05c; /* hsl(38 49% 57%) */
+  --accent-hover: #d6b06b; /* hsl(39 57% 63%) */
+  --accent-active: #ae8848; /* hsl(38 41% 48%) */
+  --accent-surface: rgba(199, 160, 92, 0.14); /* fond teinté */
+  --accent-text-on: #14130e; /* texte/icône sur aplat bronze */
+
+  /* Sémantique — minérale */
+  --success: #8fa86a; /* hsl(84 26% 54%)  — vert-de-gris */
+  --success-surface: rgba(143, 168, 106, 0.14);
+  --warning: #d49a45; /* hsl(36 62% 55%)  — ambre */
+  --warning-surface: rgba(212, 154, 69, 0.14);
+  --danger: #c26049; /* hsl(11 50% 52%)  — terre cuite */
+  --danger-surface: rgba(194, 96, 73, 0.14);
+  --info: #7c93b8; /* hsl(217 30% 60%) — lapis */
+  --info-surface: rgba(124, 147, 184, 0.14);
+
+  /* Data viz — 7 pigments distinguables */
+  --dv-1: #c7a05c; /* or       hsl(38 49% 57%) */
+  --dv-2: #c97a57; /* clay     hsl(18 51% 56%) */
+  --dv-3: #8fa86a; /* sauge    hsl(84 26% 54%) */
+  --dv-4: #7c93b8; /* lapis    hsl(217 30% 60%) */
+  --dv-5: #a6789c; /* porphyre hsl(313 21% 56%) */
+  --dv-6: #5fa292; /* stone    hsl(166 26% 50%) */
+  --dv-7: #cda64a; /* ocre     hsl(42 57% 55%) */
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 2px 4px rgba(0, 0, 0, 0.45), 0 18px 48px rgba(0, 0, 0, 0.45);
+  --focus-ring: 0 0 0 2px var(--surface-base), 0 0 0 4px var(--accent);
+}
+
+/* ===== LIGHT — outil de travail / neutre ===== */
+[data-theme='light'] {
+  --surface-base: #f4f1ea; /* hsl(42 31% 94%)  — marbre clair */
+  --surface-sunken: #ece7dc; /* hsl(41 30% 89%) */
+  --surface-raised: #fbf9f4; /* hsl(43 47% 97%) */
+  --surface-raised-2: #ffffff; /* hsl(0 0% 100%) */
+  --overlay: rgba(34, 31, 24, 0.4);
+
+  --border-subtle: rgba(20, 19, 14, 0.08);
+  --border-default: rgba(20, 19, 14, 0.14);
+  --border-strong: rgba(20, 19, 14, 0.26);
+
+  --text-primary: #221f18; /* hsl(42 17% 11%)  — AAA sur base */
+  --text-secondary: #4f4a3e; /* hsl(42 12% 28%)  — AAA sur base */
+  --text-tertiary: #7a7464; /* hsl(44 10% 44%)  — AA */
+  --text-disabled: #aba493; /* hsl(43 13% 62%) */
+  --text-inverted: #fbf9f4;
+
+  --accent: #8a6a2e; /* hsl(39 50% 36%)  — bronze assombri, AA sur clair */
+  --accent-hover: #9c7b38; /* hsl(40 47% 42%) */
+  --accent-active: #765925; /* hsl(39 52% 30%) */
+  --accent-surface: rgba(138, 106, 46, 0.12);
+  --accent-text-on: #fbf9f4; /* texte clair sur aplat bronze foncé */
+
+  --success: #5e7a44; /* hsl(91 28% 37%) */
+  --success-surface: rgba(94, 122, 68, 0.12);
+  --warning: #a9772a; /* hsl(36 60% 41%) */
+  --warning-surface: rgba(169, 119, 42, 0.12);
+  --danger: #a8472f; /* hsl(12 56% 42%) */
+  --danger-surface: rgba(168, 71, 47, 0.12);
+  --info: #4f668c; /* hsl(217 28% 43%) */
+  --info-surface: rgba(79, 102, 140, 0.12);
+
+  --dv-1: #8a6a2e;
+  --dv-2: #a85c3d;
+  --dv-3: #5e7a44;
+  --dv-4: #4f668c;
+  --dv-5: #82557a;
+  --dv-6: #3f7e70;
+  --dv-7: #a57f22;
+
+  --shadow-sm: 0 1px 2px rgba(20, 19, 14, 0.06);
+  --shadow-md: 0 1px 2px rgba(20, 19, 14, 0.06), 0 8px 24px rgba(20, 19, 14, 0.08);
+  --shadow-lg: 0 2px 4px rgba(20, 19, 14, 0.08), 0 18px 48px rgba(20, 19, 14, 0.12);
+  --focus-ring: 0 0 0 2px var(--surface-base), 0 0 0 4px var(--accent);
+}
+
+/* ===== Motion — indépendant du thème (spec §8) ===== */
+:root {
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1); /* sorties, entrées d'éléments */
+  --ease-in-out: cubic-bezier(0.45, 0, 0.4, 1); /* déplacements, réversibles */
+  --dur-instant: 100ms; /* hover, pressions, micro-feedback */
+  --dur-fast: 200ms; /* focus ring, tab switch, badges */
+  --dur-base: 300ms; /* entrée modale/popover, transition de thème */
+}

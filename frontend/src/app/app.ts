@@ -1,11 +1,12 @@
 import { Component, inject, signal, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { ThemeToggle } from './theme/theme-toggle';
 
 type ApiStatus = 'loading' | 'UP' | 'DOWN' | 'unreachable';
 
 @Component({
   selector: 'app-root',
-  imports: [],
+  imports: [ThemeToggle],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
