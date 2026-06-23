@@ -5,8 +5,6 @@ import dev.ryanfoerster.atlas.identity.domain.service.MagicLinkTokenGenerator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.time.Clock;
-
 /**
  * Câblage Spring du module identity.
  *
@@ -15,17 +13,10 @@ import java.time.Clock;
  * ici, dans l'infrastructure, plutôt que de les annoter {@code @Component} — c'est ce qui garde
  * le domaine indépendant du framework.
  *
- * <p>Le {@link Clock} est injecté partout où un use case a besoin de « maintenant », pour rester
- * testable (un test injecte {@code Clock.fixed(...)}). On ne fait jamais {@code Instant.now()}
- * en dur.
+ * <p>Le {@code Clock} (transverse) est désormais un bean global ({@code GlobalBeansConfig}).
  */
 @Configuration
 class IdentityModuleConfig {
-
-    @Bean
-    Clock clock() {
-        return Clock.systemUTC();
-    }
 
     @Bean
     MagicLinkExpirationPolicy magicLinkExpirationPolicy() {
