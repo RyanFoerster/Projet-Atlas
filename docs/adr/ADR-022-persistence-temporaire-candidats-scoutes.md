@@ -46,6 +46,10 @@ athlètes persistants), le candidat complet en un blob **jsonb**. Index sur `exp
 
 **Négatives**
 - Une table + un job de purge à maintenir. Coût modeste.
+- **Purge `@Scheduled` : limitation mono-instance assumée pour le MVP.** En cas de déploiement
+  multi-instance futur, plusieurs instances lanceraient la purge en parallèle — prévoir alors un
+  **`@SchedulerLock` (lib ShedLock)** ou une élection de leader pour éviter les purges concurrentes. Non
+  bloquant aujourd'hui (mono-instance), tracé pour honnêteté.
 - Écritures à chaque scout (même refusé) → volume de candidats temporaires ; borné par le TTL + la purge.
 
 **Neutres**

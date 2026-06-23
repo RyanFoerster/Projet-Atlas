@@ -32,6 +32,11 @@ soit un pattern de force, soit un groupe musculaire (axes distincts, tirés par 
 | **SPECIALIST** |  8 % | 0.88 – 1.05 | 1.12 – 1.22 / 1.17 – 1.27 | 2 (francs) |
 | **PRODIGY**    |  2 % | 0.85 – 1.12 | 1.20 – 1.25 / 1.25 – 1.30 | 1 (exceptionnel) |
 
+> **Note (intentionnel)** : le PRODIGY a une base qui descend jusqu'à **0.85** (vs 0.88 pour les autres
+> tiers) — il peut donc avoir des **points faibles plus marqués**, compensés par son axe exceptionnel.
+> C'est le concept du génie déséquilibré (spécialisation extrême avec compensations génétiques).
+> Référence : dossiers *Stronger By Science* sur les outliers génétiques aux capacités contrastées.
+>
 > La bande hypertrophie = bande force + 0.05 (l'hypertrophie monte jusqu'à 1.30, la force à 1.25),
 > bornée aux plages de `Genetics`. PRODIGY a une base un peu plus variable (« les autres axes restent
 > variables »). Le tier est tiré par `RarityRoller` (probabilités cumulées), la génétique par
