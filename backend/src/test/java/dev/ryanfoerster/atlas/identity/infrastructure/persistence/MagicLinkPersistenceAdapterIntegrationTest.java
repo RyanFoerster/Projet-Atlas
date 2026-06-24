@@ -5,7 +5,6 @@ import dev.ryanfoerster.atlas.identity.domain.model.Email;
 import dev.ryanfoerster.atlas.identity.domain.model.MagicLink;
 import dev.ryanfoerster.atlas.identity.domain.model.MagicLinkToken;
 import dev.ryanfoerster.atlas.identity.domain.port.MagicLinkRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -25,11 +24,6 @@ class MagicLinkPersistenceAdapterIntegrationTest extends AbstractIntegrationTest
 
     @Autowired
     private MagicLinkJpaRepository jpaRepository;
-
-    @BeforeEach
-    void cleanUp() {
-        jpaRepository.deleteAll();
-    }
 
     @Test
     void saves_and_finds_an_unconsumed_link_by_token() {

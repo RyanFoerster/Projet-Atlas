@@ -52,12 +52,35 @@ l'architecture event-driven du modular monolith** sur un cas concret (isolation,
   `cleanUp` supprimait la table `users` partagée, cassant les FK des rosters d'autres tests. Corrigé en
   scopant par owner unique (pas de `@DirtiesContext` partout).
 
+## Dette anticipée qui s'est matérialisée — et résolue durablement
+
+- **État partagé Testcontainers singleton : le risque tracé aux rétros sprint 2 ET 3 a mordu.** Noté « à
+  surveiller » depuis le sprint 2, il s'est concrétisé **au push CI du sprint 3** : 23 erreurs, toutes
+  `fk_rosters_owner` violée. Cause exacte (diagnostiquée, pas devinée) : **{ordre d'exécution non
+  déterministe} × {état partagé}**. `runOrder` Surefire par défaut = `filesystem` → ordre des classes
+  **dépendant de l'OS** (macOS local ≠ Linux CI) ; `forkCount=1` + `reuseForks=true` → un seul JVM + container
+  partagé, l'état s'accumule ; FK `rosters→users` **sans CASCADE** ; et `WorkoutLoggedEventDrivenTest` (test
+  cross-module, multiplie les couples user+roster) ne nettoyait pas. Reproduit en local avec
+  `runOrder=alphabetical`.
+  
+  **Le vrai problème n'était pas une ligne manquante : c'était 14 tests nettoyant de 14 façons différentes.**
+  Résolu **durablement** (pas patché) : nettoyage **centralisé** dans `AbstractIntegrationTest`
+  (`@BeforeEach` → `TRUNCATE … RESTART IDENTITY CASCADE` sur les tables découvertes dynamiquement via
+  `pg_tables`, `event_publication` inclus, `flyway_schema_history` exclu). Postgres gère l'ordre des FK
+  → aucun test n'a à le connaître ; toute table d'un futur sprint est incluse automatiquement. Les 14
+  nettoyages par classe supprimés. Bonus : `runOrder=alphabetical` épinglé (parité local/CI). **Validé dans
+  les deux ordres** (alphabetical ET reversealphabetical → 268 tests verts). Le futur sprint 4
+  (`athletes → rosters → users` + tables Athletics) en bénéficie sans rien changer.
+  
+  **Leçon** : une dette tracée « à surveiller » doit avoir un **déclencheur de matérialisation** clair (ici :
+  « dès qu'un test cross-module crée des couples FK »). On l'avait. Quand il a sauté, on a fait un diagnostic
+  rigoureux avant de coder, et on a réglé la *cause* (hétérogénéité du nettoyage), pas le *symptôme* (la FK).
+
 ## À surveiller (réévaluation future, pas une correction immédiate)
 
-- **Pattern de test à état partagé (Testcontainers singleton).** La base est unique entre classes de test.
-  **Règle tenue** : scoper les données par owner/id unique → les résidus d'autres tests n'affectent pas les
-  assertions. **Vigilance** : le jour où un test fait une assertion **globale** (`countAll`, `findAll`), elle
-  sera polluée. Il faudra alors isoler (scope explicite, ou nettoyage ordonné respectant les FK).
+- **Parallélisation des tests d'intégration.** Le nettoyage par `TRUNCATE` suppose `forkCount=1` (séquentiel).
+  Si on parallélise un jour, prévoir un schéma (ou une base) par fork. Tracé en commentaire dans
+  `AbstractIntegrationTest`.
 - **Mapping `BodyRegion → MuscleGroup` (sprint 4).** Tracé dans ADR-026 : ~9/11 en correspondance directe, mais
   `BACK` est plus grossier que `BACK_UPPER`/`BACK_LOWER`, et `FOREARMS` n'a pas d'équivalent. À arbitrer quand
   Athletics calculera le stimulus d'hypertrophie d'un accessoire.

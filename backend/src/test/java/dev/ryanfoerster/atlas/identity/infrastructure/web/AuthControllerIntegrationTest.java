@@ -10,7 +10,6 @@ import dev.ryanfoerster.atlas.identity.domain.port.MagicLinkRepository;
 import dev.ryanfoerster.atlas.identity.domain.port.UserRepository;
 import dev.ryanfoerster.atlas.identity.infrastructure.persistence.MagicLinkJpaRepository;
 import dev.ryanfoerster.atlas.identity.infrastructure.persistence.UserJpaRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -47,12 +46,6 @@ class AuthControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private MagicLinkJpaRepository magicLinkJpaRepository;
-
-    @BeforeEach
-    void cleanUp() {
-        magicLinkJpaRepository.deleteAll();
-        userJpaRepository.deleteAll();
-    }
 
     private MagicLinkToken issueLinkFor(String email) {
         Instant now = Instant.now();

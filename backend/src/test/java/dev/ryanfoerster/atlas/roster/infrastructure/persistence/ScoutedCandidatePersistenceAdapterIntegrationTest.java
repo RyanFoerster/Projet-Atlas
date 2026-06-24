@@ -8,7 +8,6 @@ import dev.ryanfoerster.atlas.roster.domain.model.ScoutedCandidateId;
 import dev.ryanfoerster.atlas.roster.domain.port.ScoutedCandidateRepository;
 import dev.ryanfoerster.atlas.roster.domain.service.AthleteGenerator;
 import dev.ryanfoerster.atlas.roster.domain.service.ProceduralAthleteGenerator;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -26,11 +25,6 @@ class ScoutedCandidatePersistenceAdapterIntegrationTest extends AbstractIntegrat
     private ScoutedCandidateRepository repository;
     @Autowired
     private ScoutedCandidateJpaRepository jpaRepository;
-
-    @BeforeEach
-    void cleanUp() {
-        jpaRepository.deleteAll();
-    }
 
     private ScoutedCandidate issued(long seed, Instant createdAt, Instant expiresAt) {
         AthleteCandidate candidate = generator.generateCandidate(seed, Rarity.PRODIGY);

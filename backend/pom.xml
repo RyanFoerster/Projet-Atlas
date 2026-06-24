@@ -186,6 +186,11 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
+                    <!-- Ordre d'exécution déterministe et identique sur tous les OS (sinon le défaut
+                         `filesystem` diffère macOS/Linux → flakes ordre-dépendants cachés en local, visibles
+                         seulement en CI). Le nettoyage centralisé (AbstractIntegrationTest) rend l'ordre
+                         indifférent pour la CORRECTION ; `alphabetical` garantit la REPRODUCTIBILITÉ local==CI. -->
+                    <runOrder>alphabetical</runOrder>
                     <systemPropertyVariables>
                         <postgres.image.version>${postgres.image.version}</postgres.image.version>
                     </systemPropertyVariables>

@@ -10,7 +10,6 @@ import dev.ryanfoerster.atlas.identity.domain.model.InvalidDisplayNameException;
 import dev.ryanfoerster.atlas.identity.domain.model.User;
 import dev.ryanfoerster.atlas.identity.domain.port.UserRepository;
 import dev.ryanfoerster.atlas.identity.infrastructure.persistence.UserJpaRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.event.ApplicationEvents;
@@ -39,11 +38,6 @@ class CompleteSignupUseCaseIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private ApplicationEvents events;
-
-    @BeforeEach
-    void cleanUp() {
-        userJpaRepository.deleteAll();
-    }
 
     @Test
     void creates_the_player_logs_them_in_and_publishes_both_events() {

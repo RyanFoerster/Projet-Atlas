@@ -20,7 +20,6 @@ import dev.ryanfoerster.atlas.shared.domain.MovementPattern;
 import dev.ryanfoerster.atlas.shared.domain.OneRepMax;
 import dev.ryanfoerster.atlas.shared.domain.UserId;
 import dev.ryanfoerster.atlas.shared.domain.Weight;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -48,12 +47,6 @@ class RosterPersistenceAdapterIntegrationTest extends AbstractIntegrationTest {
     private UserJpaRepository userJpaRepository;
     @Autowired
     private JdbcTemplate jdbcTemplate;
-
-    @BeforeEach
-    void cleanUp() {
-        rosterJpaRepository.deleteAll();
-        userJpaRepository.deleteAll();
-    }
 
     private UserId createOwner() {
         User user = userRepository.save(User.register(

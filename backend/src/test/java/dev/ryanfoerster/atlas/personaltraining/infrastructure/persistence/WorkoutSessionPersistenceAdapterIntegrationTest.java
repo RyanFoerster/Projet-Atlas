@@ -16,7 +16,6 @@ import dev.ryanfoerster.atlas.personaltraining.domain.port.WorkoutSessionReposit
 import dev.ryanfoerster.atlas.shared.domain.MovementPattern;
 import dev.ryanfoerster.atlas.shared.domain.UserId;
 import dev.ryanfoerster.atlas.shared.domain.Weight;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -42,15 +41,6 @@ class WorkoutSessionPersistenceAdapterIntegrationTest extends AbstractIntegratio
     private UserRepository userRepository;
     @Autowired
     private JdbcTemplate jdbcTemplate;
-
-    @BeforeEach
-    void cleanUp() {
-        // On ne nettoie QUE workout_sessions : la table `users` est partagée entre classes de test
-        // (base Testcontainers unique), et y faire deleteAll casserait les FK des rosters laissés par
-        // d'autres tests. Nos requêtes sont scopées par owner (user unique par test), donc des séances
-        // résiduelles d'autres owners n'affectent pas les assertions.
-        jpaRepository.deleteAll();
-    }
 
     private UserId createOwner() {
         User user = userRepository.save(User.register(

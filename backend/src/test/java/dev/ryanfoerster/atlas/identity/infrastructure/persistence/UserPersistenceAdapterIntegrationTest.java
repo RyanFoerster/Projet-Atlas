@@ -5,7 +5,6 @@ import dev.ryanfoerster.atlas.identity.domain.model.DisplayName;
 import dev.ryanfoerster.atlas.identity.domain.model.Email;
 import dev.ryanfoerster.atlas.identity.domain.model.User;
 import dev.ryanfoerster.atlas.identity.domain.port.UserRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -34,11 +33,6 @@ class UserPersistenceAdapterIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private UserJpaRepository jpaRepository;
-
-    @BeforeEach
-    void cleanUp() {
-        jpaRepository.deleteAll();
-    }
 
     @Test
     void saves_and_finds_by_id_with_all_fields_round_tripping() {

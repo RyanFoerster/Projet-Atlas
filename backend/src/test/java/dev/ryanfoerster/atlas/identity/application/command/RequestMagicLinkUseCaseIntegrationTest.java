@@ -40,7 +40,6 @@ class RequestMagicLinkUseCaseIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void cleanUp() {
-        magicLinkJpaRepository.deleteAll();
         emailSender.sent.clear();
     }
 
