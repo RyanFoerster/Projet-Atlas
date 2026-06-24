@@ -37,9 +37,9 @@ Voir `ADR-template.md` pour le squelette à dupliquer.
 | 020 | Système de rareté par spécialisation (vs niveau global) | Accepté |
 | 021 | Génétique hybride de l'athlète miroir (influencée par les 1RM) | Accepté |
 | 022 | Persistence temporaire des candidats scoutés (intégrité du recrutement) | Accepté |
-| 023 | Event Publication Registry Modulith — durabilité + cohérence éventuelle | Proposé (sprint 3, GATE C) |
-| 024 | Pattern snapshot DTO pour les events publics (isolation du domaine) | Proposé (sprint 3, GATE B) |
-| 025 | TrainingHistory minimal sprint 3, enrichissement Banister sprint 4 | Proposé (sprint 3, GATE C) |
+| 023 | Event Publication Registry Modulith — durabilité, at-least-once, cohérence éventuelle | Accepté (sprint 3) |
+| 024 | Pattern snapshot DTO pour les events publics + named interface (isolation) | Accepté (sprint 3) |
+| 025 | TrainingHistory sans compteur (option D) — source de vérité unique + idempotence | Accepté (sprint 3) |
 | 026 | Catégorisation des exercices loggés via sealed `ExerciseCategory` | Accepté (sprint 3) |
 
 ## Règles
