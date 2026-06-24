@@ -30,6 +30,21 @@ spring.flyway:
   enabled: true
   locations: classpath:db/migration
 
+# Spring Modulith — Event Publication Registry (sprint 3, ADR-023)
+# Communication inter-module durable : les events sont persistés (table event_publication,
+# créée par Flyway en V007) avant l'exécution de leur handler, et marqués complets au succès.
+spring.modulith:
+  events:
+    # Le schéma de la table event_publication est géré par Flyway (jamais par Modulith) — on
+    # désactive l'auto-initialisation pour rester cohérent avec ddl-auto: validate (ADR-008).
+    jdbc:
+      schema-initialization:
+        enabled: false
+    # Republie au démarrage les publications restées incomplètes (handler échoué / app coupée
+    # en plein traitement). Livraison « at-least-once » sans retry runtime automatique : c'est le
+    # redémarrage qui rejoue. Choix Atlas par défaut (cohérence éventuelle assumée, ADR-023).
+    republish-outstanding-events-on-restart: true
+
 # Actuator : on expose explicitement health + info (pas tout, par principe de moindre exposition)
 management:
   endpoints:

@@ -84,6 +84,14 @@
             <artifactId>spring-modulith-starter-core</artifactId>
         </dependency>
 
+        <!-- Event Publication Registry (JPA) : persiste les events applicatifs dans la table
+             event_publication → durabilité transactionnelle au commit + republication au démarrage
+             (garantie de livraison inter-module, ADR-023, sprint 3). Version gérée par le BOM Modulith. -->
+        <dependency>
+            <groupId>org.springframework.modulith</groupId>
+            <artifactId>spring-modulith-starter-jpa</artifactId>
+        </dependency>
+
         <!-- Actuator : endpoints d'observabilité, dont /actuator/health (version gérée par le BOM) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
