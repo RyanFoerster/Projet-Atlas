@@ -325,6 +325,74 @@
       </div>
     </div>
 
+    <!-- ===== 6. PERSONALTRAINING (sprint 3) ===== -->
+    <div style="font-family:'Cormorant',serif; font-weight:600; font-size:28px; letter-spacing:0.16em; text-transform:uppercase; margin:64px 0 8px;">06 — PersonalTraining</div>
+    <div style="height:1px; background:var(--border-default); margin-bottom:32px;"></div>
+
+    <!-- SegmentedControl + Select -->
+    <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:18px;">SegmentedControl (Composé / Accessoire) &amp; Select natif stylé</div>
+    <div style="display:flex; flex-wrap:wrap; gap:18px; align-items:center; margin-bottom:40px;">
+      <div style="display:inline-flex; padding:2px; border-radius:8px; background:var(--surface-sunken); border:1px solid var(--border-default);">
+        <button style="height:32px; padding:0 12px; border-radius:6px; border:none; cursor:pointer; font-family:'IBM Plex Sans'; font-size:14px; background:var(--surface-raised); color:var(--text-primary); box-shadow:var(--shadow-sm);">Composé</button>
+        <button style="height:32px; padding:0 12px; border-radius:6px; border:none; cursor:pointer; font-family:'IBM Plex Sans'; font-size:14px; background:transparent; color:var(--text-tertiary);">Accessoire</button>
+      </div>
+      <div style="position:relative; width:200px;">
+        <select style="width:100%; height:40px; padding:0 36px 0 12px; border-radius:8px; -webkit-appearance:none; appearance:none; background:var(--surface-sunken); color:var(--text-primary); font-family:'IBM Plex Sans'; font-size:15px; border:1px solid var(--border-default);"><option>Squat</option><option>Développé couché</option></select>
+        <span style="pointer-events:none; position:absolute; right:12px; top:50%; transform:translateY(-50%); color:var(--text-tertiary);">▾</span>
+      </div>
+    </div>
+
+    <!-- ExerciseLogRow : composé (liseré bronze) + accessoire (liseré neutre) -->
+    <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:18px;">ExerciseLogRow — liseré gauche = catégorie (scannable dans une longue séance)</div>
+    <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:40px; max-width:620px;">
+      <!-- composé -->
+      <div style="border-radius:12px; background:var(--surface-raised); border:1px solid var(--border-default); border-left:2px solid var(--accent); padding:16px;">
+        <div style="display:flex; gap:10px; align-items:center; margin-bottom:14px; flex-wrap:wrap;">
+          <div style="display:inline-flex; padding:2px; border-radius:8px; background:var(--surface-sunken); border:1px solid var(--border-default);"><button style="height:30px; padding:0 10px; border-radius:6px; border:none; font-family:'IBM Plex Sans'; font-size:13px; background:var(--surface-raised); color:var(--text-primary); box-shadow:var(--shadow-sm); cursor:pointer;">Composé</button><button style="height:30px; padding:0 10px; border-radius:6px; border:none; font-family:'IBM Plex Sans'; font-size:13px; background:transparent; color:var(--text-tertiary); cursor:pointer;">Accessoire</button></div>
+          <input value="Back Squat" style="flex:1; min-width:140px; height:36px; padding:0 12px; border-radius:8px; background:var(--surface-sunken); color:var(--text-primary); font-family:'IBM Plex Sans'; font-size:15px; border:1px solid var(--border-default);">
+          <div style="position:relative; width:150px;"><select style="width:100%; height:36px; padding:0 32px 0 12px; border-radius:8px; -webkit-appearance:none; appearance:none; background:var(--surface-sunken); color:var(--text-primary); font-family:'IBM Plex Sans'; font-size:14px; border:1px solid var(--border-default);"><option>Squat</option></select><span style="pointer-events:none; position:absolute; right:10px; top:50%; transform:translateY(-50%); color:var(--text-tertiary);">▾</span></div>
+        </div>
+        <div style="display:grid; grid-template-columns:64px 1fr 64px 28px; gap:10px; font-family:'IBM Plex Sans'; font-size:10px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:6px; padding:0 2px;"><span>Reps</span><span>Poids</span><span>RPE</span><span></span></div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <div style="display:grid; grid-template-columns:64px 1fr 64px 28px; gap:10px; align-items:center;"><input value="5" style="height:34px; padding:0 10px; border-radius:7px; background:var(--surface-sunken); color:var(--text-primary); font-family:'IBM Plex Mono'; font-size:14px; border:1px solid var(--border-default); text-align:center;"><div style="position:relative;"><input value="140" style="width:100%; height:34px; padding:0 30px 0 10px; border-radius:7px; background:var(--surface-sunken); color:var(--text-primary); font-family:'IBM Plex Mono'; font-size:14px; border:1px solid var(--border-default);"><span style="position:absolute; right:10px; top:50%; transform:translateY(-50%); font-family:'IBM Plex Mono'; font-size:12px; color:var(--text-tertiary);">kg</span></div><input value="7.5" style="height:34px; padding:0 10px; border-radius:7px; background:var(--surface-sunken); color:var(--text-primary); font-family:'IBM Plex Mono'; font-size:14px; border:1px solid var(--border-default); text-align:center;"><button style="background:none; border:none; color:var(--text-tertiary); cursor:pointer; font-size:15px;">✕</button></div>
+          <div style="display:grid; grid-template-columns:64px 1fr 64px 28px; gap:10px; align-items:center;"><input value="5" style="height:34px; padding:0 10px; border-radius:7px; background:var(--surface-sunken); color:var(--text-primary); font-family:'IBM Plex Mono'; font-size:14px; border:1px solid var(--border-default); text-align:center;"><div style="position:relative;"><input value="140" style="width:100%; height:34px; padding:0 30px 0 10px; border-radius:7px; background:var(--surface-sunken); color:var(--text-primary); font-family:'IBM Plex Mono'; font-size:14px; border:1px solid var(--border-default);"><span style="position:absolute; right:10px; top:50%; transform:translateY(-50%); font-family:'IBM Plex Mono'; font-size:12px; color:var(--text-tertiary);">kg</span></div><input value="8.5" style="height:34px; padding:0 10px; border-radius:7px; background:var(--surface-sunken); color:var(--text-primary); font-family:'IBM Plex Mono'; font-size:14px; border:1px solid var(--border-default); text-align:center;"><button style="background:none; border:none; color:var(--text-tertiary); cursor:pointer; font-size:15px;">✕</button></div>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;"><button style="background:none; border:none; color:var(--accent); cursor:pointer; font-family:'IBM Plex Sans'; font-size:13px;">+ ajouter une série</button><button style="background:none; border:none; color:var(--text-tertiary); cursor:pointer; font-size:14px;">🗑 supprimer</button></div>
+      </div>
+      <!-- accessoire (poids vide = poids de corps) -->
+      <div style="border-radius:12px; background:var(--surface-raised); border:1px solid var(--border-default); border-left:2px solid var(--border-strong); padding:16px;">
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <div style="display:inline-flex; padding:2px; border-radius:8px; background:var(--surface-sunken); border:1px solid var(--border-default);"><button style="height:30px; padding:0 10px; border-radius:6px; border:none; font-family:'IBM Plex Sans'; font-size:13px; background:transparent; color:var(--text-tertiary); cursor:pointer;">Composé</button><button style="height:30px; padding:0 10px; border-radius:6px; border:none; font-family:'IBM Plex Sans'; font-size:13px; background:var(--surface-raised); color:var(--text-primary); box-shadow:var(--shadow-sm); cursor:pointer;">Accessoire</button></div>
+          <input value="Gainage" style="flex:1; min-width:140px; height:36px; padding:0 12px; border-radius:8px; background:var(--surface-sunken); color:var(--text-primary); font-family:'IBM Plex Sans'; font-size:15px; border:1px solid var(--border-default);">
+          <div style="position:relative; width:150px;"><select style="width:100%; height:36px; padding:0 32px 0 12px; border-radius:8px; -webkit-appearance:none; appearance:none; background:var(--surface-sunken); color:var(--text-primary); font-family:'IBM Plex Sans'; font-size:14px; border:1px solid var(--border-default);"><option>Gainage</option></select><span style="pointer-events:none; position:absolute; right:10px; top:50%; transform:translateY(-50%); color:var(--text-tertiary);">▾</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WorkoutSessionCard + section historique miroir -->
+    <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:18px;">WorkoutSessionCard (historique) &amp; section historique du miroir</div>
+    <div style="display:grid; grid-template-columns:1.3fr 1fr; gap:18px; align-items:start;">
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div style="border-radius:12px; background:var(--surface-raised); border:1px solid var(--border-default); padding:18px; cursor:pointer;">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;"><div style="display:flex; align-items:baseline; gap:10px;"><span style="font-family:'Cormorant',serif; font-weight:600; font-size:19px;">Il y a 2 jours</span><span style="font-family:'IBM Plex Mono'; font-size:12px; color:var(--text-tertiary);">23 jun, 18:30</span></div><span style="font-family:'IBM Plex Mono'; font-size:13px; color:var(--text-secondary);">75 min</span></div>
+          <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;"><span style="display:inline-flex; align-items:center; height:22px; padding:0 9px; border-radius:6px; font-family:'IBM Plex Sans'; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; background:var(--surface-raised-2); color:var(--text-tertiary); border:1px solid var(--border-default);">Squat</span><span style="display:inline-flex; align-items:center; height:22px; padding:0 9px; border-radius:6px; font-family:'IBM Plex Sans'; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; background:var(--surface-raised-2); color:var(--text-tertiary); border:1px solid var(--border-default);">Développé couché</span></div>
+          <div style="font-family:'IBM Plex Mono'; font-size:12px; color:var(--text-tertiary);">3 exercices · 9 séries · 47 reps</div>
+        </div>
+        <div style="border-radius:12px; background:var(--surface-raised); border:1px solid var(--border-default); padding:18px; cursor:pointer;">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;"><div style="display:flex; align-items:baseline; gap:10px;"><span style="font-family:'Cormorant',serif; font-weight:600; font-size:19px;">Il y a 5 jours</span><span style="font-family:'IBM Plex Mono'; font-size:12px; color:var(--text-tertiary);">20 jun, 10:00</span></div></div>
+          <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;"><span style="display:inline-flex; align-items:center; height:22px; padding:0 9px; border-radius:6px; font-family:'IBM Plex Sans'; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; background:var(--surface-raised-2); color:var(--text-tertiary); border:1px solid var(--border-default);">Deadlift</span></div>
+          <div style="font-family:'IBM Plex Mono'; font-size:12px; color:var(--text-tertiary);">2 exercices · 5 séries · 28 reps</div>
+        </div>
+      </div>
+      <!-- section historique du miroir (composition Stat + date relative + badges) -->
+      <div style="border-radius:12px; background:var(--surface-base); border:1px solid var(--border-subtle); padding:20px;">
+        <div style="font-family:'IBM Plex Sans'; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:12px;">Historique d'entraînement</div>
+        <div style="font-family:'IBM Plex Mono'; font-size:30px; color:var(--text-primary);">12<span style="font-size:15px; color:var(--text-tertiary);"> séances</span></div>
+        <div style="font-family:'IBM Plex Sans'; font-size:13px; color:var(--text-secondary); margin:8px 0 14px;">Dernière : il y a 2 jours</div>
+        <div style="display:flex; flex-wrap:wrap; gap:6px;"><span style="display:inline-flex; align-items:center; height:22px; padding:0 9px; border-radius:6px; font-family:'IBM Plex Sans'; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; background:var(--surface-raised-2); color:var(--text-tertiary); border:1px solid var(--border-default);">Squat</span><span style="display:inline-flex; align-items:center; height:22px; padding:0 9px; border-radius:6px; font-family:'IBM Plex Sans'; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; background:var(--surface-raised-2); color:var(--text-tertiary); border:1px solid var(--border-default);">Développé couché</span></div>
+      </div>
+    </div>
+
   </div>
 </div>
 </x-dc>

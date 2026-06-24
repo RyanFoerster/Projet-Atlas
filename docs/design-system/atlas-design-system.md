@@ -490,6 +490,92 @@ Compose Card (4.3) + RarityBadge (4.8) + StatBlock (4.9).
   `loading` (squelette pendant le scout).
 - **Comportement** : `summary` navigue ; `detailed` émet `recruit`/`refuse` (pas de navigation propre).
 
+### 4.11 Select (primitive de formulaire)
+
+`<select>` natif **stylé comme l'Input (§4.2)** : clavier et accessibilité gratuits, zéro lib (cohérent
+« pas d'Angular Material »). On masque le chrome natif (`appearance-none`) et on superpose un chevron Lucide.
+
+```html
+<div class="relative">
+  <select class="w-full h-10 pl-3 pr-9 rounded-lg appearance-none
+    bg-[var(--surface-sunken)] text-[var(--text-primary)] font-sans text-[0.9375rem]
+    border border-[var(--border-default)]
+    hover:border-[var(--border-strong)]
+    focus:outline-none focus:border-[var(--accent)] focus:shadow-[var(--focus-ring)]
+    disabled:opacity-40 transition-colors duration-150">
+    <option>Squat</option>
+  </select>
+  <!-- lucide-chevron-down 16px -->
+  <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]">▾</span>
+</div>
+```
+- **Texte** `font-sans` (libellés, pas de chiffres) ; hauteur/bordure/focus **identiques à l'Input**.
+- **État erreur** : même langage que l'Input (bordure `--danger` + message).
+- **Cross-browser** : `appearance-none` + chevron overlay diverge entre Firefox/Chrome/Safari → **vérifier le
+  rendu sur les trois** (la flèche native peut réapparaître si `appearance` incomplet).
+
+### 4.12 SegmentedControl (primitive)
+
+Choix **mutuellement exclusif** compact (2–3 segments). Plus « outil » qu'un groupe de radios, plus explicite
+qu'un dropdown — le choix devient un acte conscient. Usage canonique : type d'exercice **Composé / Accessoire**.
+
+```html
+<div role="radiogroup" class="inline-flex p-0.5 rounded-lg bg-[var(--surface-sunken)] border border-[var(--border-default)]">
+  <button role="radio" aria-checked="true"
+    class="h-8 px-3 rounded-md font-sans text-body-sm
+      bg-[var(--surface-raised)] text-[var(--text-primary)] shadow-[var(--shadow-sm)]">Composé</button>
+  <button role="radio" aria-checked="false"
+    class="h-8 px-3 rounded-md font-sans text-body-sm
+      text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors duration-100">Accessoire</button>
+</div>
+```
+- **États** : default / hover / **selected** (fond `surface-raised` + ombre + texte primaire) / focus-visible
+  (focus-ring sur le segment) / disabled.
+- **A11y** : `role="radiogroup"` + `role="radio"` + `aria-checked` ; flèches gauche/droite naviguent ; le
+  segment actif a fond **et** poids (couleur jamais seule).
+
+### 4.13 ExerciseSetRow (module personaltraining)
+
+Sous-ligne d'une série dans le logger. Grille `reps · poids · rpe · supprimer`, **inputs numériques mono**
+(Input §4.2). Densité Football Manager.
+
+- **Champs** : `reps` **requis** (1–100) ; `poids` **optionnel** — *vide = poids de corps* (gainage, traction) —
+  suffixe `kg` ; `rpe` **optionnel**, **1.0–10.0 par incréments de 0.5** (ex. 7.5, 8.5 — standard powerlifting,
+  aligné sur le VO `RPE` du domaine).
+- **États** : idle / focus (par champ) / error (bordure + message sous la grille, langage Input) / disabled (submit).
+- **Clavier (attendu des lifters)** : **Tab** parcourt reps→poids→rpe ; **Enter** sur la dernière série **ajoute
+  une série en dupliquant la dernière** (reps + poids gardés, **RPE vidé**) et place le focus sur ses reps.
+  Supprimer une série la retire (jamais sous 1 série/exercice).
+
+### 4.14 ExerciseLogRow (module personaltraining)
+
+Bloc d'un exercice dans le logger. `Card p-4` avec **liseré gauche 2px** qui encode la catégorie — il rend la
+nature de chaque exercice **scannable d'un coup d'œil** dans une longue séance (langage FM).
+
+- **Anatomie** : en-tête = `SegmentedControl` (Composé/Accessoire) + `Input` nom (texte) + `Select`
+  (MovementPattern **ou** BodyRegion selon le segment). Corps = mini en-tête de colonnes (caption
+  `reps · poids · rpe`) + liste de `ExerciseSetRow`. Pied = `+ ajouter une série` (lien discret) +
+  `supprimer l'exercice` (icône, à droite).
+- **Variantes** (pilotées par le segment) :
+  - `compound` : liseré **bronze** (`--accent`), Select = **MovementPattern** (Squat, Développé couché…) → API `pattern` ;
+  - `accessory` : liseré **neutre** (`--border-strong`), Select = **BodyRegion** (Biceps, Gainage…) → API `region`.
+- **Comportement** : changer de segment **swap le Select et réinitialise sa valeur** (1er item) ; ≥1 série
+  toujours présente ; supprimer l'exercice retire le bloc (≥1 exercice par séance).
+- **États** : default / champ en error / disabled (submit) / **invalid** au submit (nom vide ou 0 série → bordure
+  subtile `--danger`). Le `pattern` XOR `region` est garanti par construction (le segment détermine lequel est envoyé).
+
+### 4.15 WorkoutSessionCard (module personaltraining)
+
+Carte d'une séance dans l'historique chronologique (`/training`). `Card` **interactive** → `/training/sessions/:id`.
+
+- **Anatomie** : ligne 1 = **date relative** (`font-display`, « il y a 2 jours ») + date absolue discrète (mono,
+  `--text-tertiary`) ; durée (`75 min`, mono) à droite si présente. Ligne 2 = **patterns couverts** en `Badge`
+  neutres — les **accessoires ne sont pas listés** (cohérent avec `patternsCovered()`, ADR-026). Ligne 3 (méta
+  mono `--text-tertiary`) = `N exercices · X séries · Y reps`.
+- **États** : default / hover (Card interactive) / focus-visible.
+- **Empty state** (historique vide) : **par composition** (layout + voix « Tu n'as pas encore loggé de séance. »),
+  pas de nouveau composant (doctrine async-states).
+
 ---
 
 ## 5. Patterns & layouts canoniques
