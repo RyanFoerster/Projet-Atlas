@@ -104,3 +104,16 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Spinners natifs des inputs numériques masqués : moches et incohérents avec le design system épuré.
+   La saisie reste numérique (type=number → clavier mobile adapté, validation), sans les flèches haut/bas.
+   Couvre reps / poids / RPE / durée et tout futur champ numérique. */
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
