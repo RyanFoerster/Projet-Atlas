@@ -9,6 +9,9 @@ import { RosterPage } from './roster/pages/roster-page';
 import { MirrorCreatePage } from './roster/pages/mirror-create-page';
 import { ScoutPage } from './roster/pages/scout-page';
 import { AthleteDetailPage } from './roster/pages/athlete-detail-page';
+import { TrainingPage } from './training/pages/training-page';
+import { LogWorkoutPage } from './training/pages/log-workout-page';
+import { SessionDetailPage } from './training/pages/session-detail-page';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'login' },
@@ -21,5 +24,8 @@ export const routes: Routes = [
   { path: 'roster/mirror/new', component: MirrorCreatePage, canActivate: [authGuard] },
   { path: 'roster/scout', component: ScoutPage, canActivate: [authGuard] },
   { path: 'roster/athletes/:id', component: AthleteDetailPage, canActivate: [authGuard] },
+  { path: 'training', component: TrainingPage, canActivate: [authGuard] },
+  { path: 'training/log', component: LogWorkoutPage, canActivate: [authGuard] },
+  { path: 'training/sessions/:id', component: SessionDetailPage, canActivate: [authGuard] },
   { path: '**', redirectTo: 'login' },
 ];

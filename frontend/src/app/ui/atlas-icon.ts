@@ -6,7 +6,8 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
 /** Icônes enregistrées. Union stricte : TypeScript refuse toute icône non listée à la compilation. */
 export type AtlasIconName =
-  | 'mail' | 'alert-circle' | 'arrow-right' | 'arrow-left' | 'log-out' | 'sun' | 'moon' | 'search';
+  | 'mail' | 'alert-circle' | 'arrow-right' | 'arrow-left' | 'log-out' | 'sun' | 'moon' | 'search'
+  | 'plus' | 'x' | 'trash-2' | 'chevron-down' | 'activity';
 
 /** Tailles canoniques du design system (§7). Pas de taille libre. */
 export type AtlasIconSize = 16 | 20 | 24;
@@ -75,6 +76,27 @@ export type AtlasIconSize = 16 | 20 | 24;
         }
         @case ('moon') {
           <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+        }
+        @case ('plus') {
+          <path d="M5 12h14" />
+          <path d="M12 5v14" />
+        }
+        @case ('x') {
+          <path d="M18 6 6 18" />
+          <path d="m6 6 12 12" />
+        }
+        @case ('trash-2') {
+          <path d="M3 6h18" />
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+          <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+          <line x1="10" x2="10" y1="11" y2="17" />
+          <line x1="14" x2="14" y1="11" y2="17" />
+        }
+        @case ('chevron-down') {
+          <path d="m6 9 6 6 6-6" />
+        }
+        @case ('activity') {
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
         }
       }
     </svg>

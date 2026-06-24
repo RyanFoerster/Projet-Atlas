@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { RosterService } from '../roster.service';
 import { Athlete } from '../roster.models';
 import { MOVEMENT_LABELS, MOVEMENT_ORDER } from '../roster.labels';
+import { movementLabel, relativeDate } from '../../training/training.labels';
 import { RosterShell } from '../roster-shell';
 import { AtlasGeneticsPanel } from '../genetics-panel';
 import { AtlasRarityBadge } from '../../ui/atlas-rarity-badge';
@@ -51,6 +52,31 @@ import { AtlasIcon } from '../../ui/atlas-icon';
           </div>
         }
 
+        @if (a.mirror) {
+          <div class="rounded-xl bg-[var(--surface-base)] border border-[var(--border-subtle)] p-5 mb-8 max-w-[640px]">
+            <div class="mb-3 font-sans text-caption uppercase tracking-[0.08em] text-[var(--text-tertiary)]">Historique d'entraînement</div>
+            @if (a.trainingHistory.workoutCount > 0) {
+              <div class="font-mono tabular-nums text-data-lg text-[var(--text-primary)]">
+                {{ a.trainingHistory.workoutCount }}<span class="text-[1.05rem] text-[var(--text-tertiary)]"> séance{{ a.trainingHistory.workoutCount > 1 ? 's' : '' }}</span>
+              </div>
+              @if (a.trainingHistory.lastWorkoutAt) {
+                <div class="mt-2 font-sans text-body-sm text-[var(--text-secondary)]">Dernière séance : {{ relativeDate(a.trainingHistory.lastWorkoutAt) }}</div>
+              }
+              @if (a.trainingHistory.lastPatternsCovered.length) {
+                <div class="mt-3 flex flex-wrap gap-1.5">
+                  @for (p of a.trainingHistory.lastPatternsCovered; track p) {
+                    <span class="inline-flex items-center h-[22px] px-2 rounded-md font-sans text-[0.6875rem] uppercase tracking-[0.06em] bg-[var(--surface-raised-2)] text-[var(--text-tertiary)] border border-[var(--border-default)]">{{ movementLabel(p) }}</span>
+                  }
+                </div>
+              }
+            } @else {
+              <p class="font-sans text-body-sm text-[var(--text-secondary)]">
+                Aucune séance loggée pour l'instant. <a routerLink="/training/log" class="text-[var(--accent)] hover:underline">Logge ta première séance.</a>
+              </p>
+            }
+          </div>
+        }
+
         <div class="rounded-xl bg-[var(--surface-raised)] border border-[var(--border-default)] p-6 max-w-[640px]">
           <p class="mb-5 font-sans font-semibold text-[1.05rem] text-[var(--text-primary)]">Profil génétique</p>
           <atlas-genetics-panel [genetics]="a.genetics" />
@@ -67,6 +93,9 @@ export class AthleteDetailPage implements OnInit {
   protected readonly athlete = signal<Athlete | null>(null);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
+
+  protected readonly relativeDate = relativeDate;
+  protected readonly movementLabel = movementLabel;
 
   protected readonly lifts = computed(() => {
     const a = this.athlete();

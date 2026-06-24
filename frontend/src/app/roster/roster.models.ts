@@ -23,6 +23,14 @@ export interface Athlete {
   genetics: GeneticsView;
   oneRepMaxesKg: Record<string, number>;
   recruitedAt: string;
+  trainingHistory: TrainingHistoryView;
+}
+
+/** Historique d'entraînement du miroir. `workoutCount` vient de PersonalTraining (option D, ADR-025). */
+export interface TrainingHistoryView {
+  workoutCount: number;
+  lastWorkoutAt: string | null;
+  lastPatternsCovered: string[];
 }
 
 export interface AthleteSummary {
