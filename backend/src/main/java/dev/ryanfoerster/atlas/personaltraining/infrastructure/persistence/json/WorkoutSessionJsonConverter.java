@@ -1,0 +1,79 @@
+package dev.ryanfoerster.atlas.personaltraining.infrastructure.persistence.json;
+
+import dev.ryanfoerster.atlas.personaltraining.domain.model.BodyRegion;
+import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseCategory;
+import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseCategory.Accessory;
+import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseCategory.CompoundForce;
+import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseName;
+import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseSet;
+import dev.ryanfoerster.atlas.personaltraining.domain.model.LoggedExercise;
+import dev.ryanfoerster.atlas.personaltraining.domain.model.RPE;
+import dev.ryanfoerster.atlas.shared.domain.MovementPattern;
+import dev.ryanfoerster.atlas.shared.domain.Weight;
+
+import java.util.List;
+
+/**
+ * Conversions domaine ↔ DTO JSON pour les exercices d'une séance (volet « sérialisation » du mapping
+ * manuel, ADR-015). Le domaine reste pur : c'est ici qu'on aplatit le sealed {@link ExerciseCategory}
+ * en discriminant et qu'on reconstruit le bon sous-type. Poids normalisés en kg.
+ */
+public final class WorkoutSessionJsonConverter {
+
+    static final String COMPOUND_FORCE = "COMPOUND_FORCE";
+    static final String ACCESSORY = "ACCESSORY";
+
+    private WorkoutSessionJsonConverter() {
+    }
+
+    public static ExercisesJson toJson(List<LoggedExercise> exercises) {
+        return new ExercisesJson(exercises.stream().map(WorkoutSessionJsonConverter::toJson).toList());
+    }
+
+    public static List<LoggedExercise> fromJson(ExercisesJson json) {
+        return json.exercises().stream().map(WorkoutSessionJsonConverter::fromJson).toList();
+    }
+
+    private static ExerciseJson toJson(LoggedExercise exercise) {
+        // Aplatissement du sealed via pattern matching exhaustif (pas de default — le compilateur veille).
+        String categoryType;
+        String pattern = null;
+        String region = null;
+        switch (exercise.category()) {
+            case CompoundForce cf -> {
+                categoryType = COMPOUND_FORCE;
+                pattern = cf.pattern().name();
+            }
+            case Accessory a -> {
+                categoryType = ACCESSORY;
+                region = a.region().name();
+            }
+        }
+        List<ExerciseSetJson> sets = exercise.sets().stream().map(WorkoutSessionJsonConverter::toJson).toList();
+        return new ExerciseJson(exercise.name().value(), categoryType, pattern, region, sets);
+    }
+
+    private static LoggedExercise fromJson(ExerciseJson json) {
+        ExerciseCategory category = switch (json.categoryType()) {
+            case COMPOUND_FORCE -> ExerciseCategory.compound(MovementPattern.valueOf(json.pattern()));
+            case ACCESSORY -> ExerciseCategory.accessory(BodyRegion.valueOf(json.region()));
+            default -> throw new IllegalStateException(
+                    "categoryType inconnu en base : " + json.categoryType()); // corruption de données → 500
+        };
+        List<ExerciseSet> sets = json.sets().stream().map(WorkoutSessionJsonConverter::fromJson).toList();
+        return new LoggedExercise(ExerciseName.of(json.name()), category, sets);
+    }
+
+    private static ExerciseSetJson toJson(ExerciseSet set) {
+        return new ExerciseSetJson(
+                set.reps(),
+                set.weight() == null ? null : set.weight().toKilograms(),
+                set.rpe() == null ? null : set.rpe().value());
+    }
+
+    private static ExerciseSet fromJson(ExerciseSetJson json) {
+        Weight weight = json.weightKg() == null ? null : Weight.ofKilograms(json.weightKg());
+        RPE rpe = json.rpe() == null ? null : RPE.of(json.rpe());
+        return new ExerciseSet(json.reps(), weight, rpe);
+    }
+}
