@@ -47,6 +47,7 @@ class ScoutingController {
             throw new ScoutedCandidateNotUsableException("Candidat introuvable ou expiré"); // id malformé → 404
         }
         Athlete recruited = recruitAthlete.recruit(owner, candidateId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(AthleteDto.from(recruited));
+        // Athlète virtuel : pas de séances IRL (son historique viendra de Programming, sprint 6+) → count 0.
+        return ResponseEntity.status(HttpStatus.CREATED).body(AthleteDto.from(recruited, 0));
     }
 }

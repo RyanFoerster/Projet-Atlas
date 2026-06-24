@@ -12,6 +12,7 @@ import dev.ryanfoerster.atlas.roster.domain.model.MirrorCreationRequest;
 import dev.ryanfoerster.atlas.roster.infrastructure.web.dto.AthleteDto;
 import dev.ryanfoerster.atlas.roster.infrastructure.web.dto.CreateMirrorDto;
 import dev.ryanfoerster.atlas.roster.infrastructure.web.dto.RosterDto;
+import dev.ryanfoerster.atlas.personaltraining.api.PersonalTrainingQueryPort;
 import dev.ryanfoerster.atlas.shared.domain.MovementPattern;
 import dev.ryanfoerster.atlas.shared.domain.OneRepMax;
 import dev.ryanfoerster.atlas.shared.domain.UserId;
@@ -38,18 +39,22 @@ class RosterController {
     private final CreateMirrorUseCase createMirror;
     private final GetRosterUseCase getRoster;
     private final GetAthleteUseCase getAthlete;
+    private final PersonalTrainingQueryPort personalTraining;
 
-    RosterController(CreateMirrorUseCase createMirror, GetRosterUseCase getRoster, GetAthleteUseCase getAthlete) {
+    RosterController(CreateMirrorUseCase createMirror, GetRosterUseCase getRoster, GetAthleteUseCase getAthlete,
+                     PersonalTrainingQueryPort personalTraining) {
         this.createMirror = createMirror;
         this.getRoster = getRoster;
         this.getAthlete = getAthlete;
+        this.personalTraining = personalTraining;
     }
 
     @PostMapping("/mirror")
     ResponseEntity<AthleteDto> createMirror(@RequestBody CreateMirrorDto body, Authentication authentication) {
         UserId owner = UserId.from(authentication.getName());
         Athlete mirror = createMirror.createMirror(owner, toRequest(body));
-        return ResponseEntity.status(HttpStatus.CREATED).body(AthleteDto.from(mirror));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(AthleteDto.from(mirror, personalTraining.countSessionsFor(owner)));
     }
 
     @GetMapping
@@ -68,8 +73,12 @@ class RosterController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build(); // id malformé = inexistant
         }
-        return getAthlete.forOwner(UserId.from(authentication.getName()), athleteId)
-                .map(AthleteDto::from)
+        UserId owner = UserId.from(authentication.getName());
+        return getAthlete.forOwner(owner, athleteId)
+                // Composition backend (option D) : le count vient de PersonalTraining, et seulement pour le
+                // miroir — un athlète virtuel n'a pas de séances IRL (son historique viendra de Programming).
+                .map(athlete -> AthleteDto.from(athlete,
+                        athlete.isMirror() ? personalTraining.countSessionsFor(owner) : 0))
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }

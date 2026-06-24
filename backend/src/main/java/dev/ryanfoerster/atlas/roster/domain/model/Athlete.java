@@ -8,6 +8,7 @@ import dev.ryanfoerster.atlas.shared.domain.Weight;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Athlète de l'écurie. <strong>Entity interne</strong> à l'aggregate {@link Roster}, pas un aggregate
@@ -35,10 +36,11 @@ public final class Athlete {
     private final Rarity rarity;
     private final boolean mirror;
     private final Instant recruitedAt;
+    private final TrainingHistory trainingHistory;
 
     private Athlete(AthleteId id, RosterId rosterId, AthleteName name, int age, Weight bodyWeight,
                     Height bodyHeight, Gender gender, Genetics genetics, CurrentStats currentStats,
-                    Rarity rarity, boolean mirror, Instant recruitedAt) {
+                    Rarity rarity, boolean mirror, Instant recruitedAt, TrainingHistory trainingHistory) {
         this.id = Objects.requireNonNull(id, "id");
         this.rosterId = Objects.requireNonNull(rosterId, "rosterId");
         this.name = Objects.requireNonNull(name, "name");
@@ -54,6 +56,7 @@ public final class Athlete {
         this.rarity = Objects.requireNonNull(rarity, "rarity");
         this.mirror = mirror;
         this.recruitedAt = Objects.requireNonNull(recruitedAt, "recruitedAt");
+        this.trainingHistory = Objects.requireNonNull(trainingHistory, "trainingHistory");
     }
 
     /**
@@ -66,7 +69,7 @@ public final class Athlete {
                                 Height bodyHeight, Gender gender, Genetics genetics,
                                 CurrentStats currentStats, Instant now) {
         return new Athlete(AthleteId.generate(), rosterId, name, age, bodyWeight, bodyHeight, gender,
-                genetics, currentStats, Rarity.GENERIC, true, now);
+                genetics, currentStats, Rarity.GENERIC, true, now, TrainingHistory.empty());
     }
 
     /** Crée un athlète virtuel à partir d'un candidat scouté (orchestré par {@link Roster#recruit}). */
@@ -74,7 +77,8 @@ public final class Athlete {
         Objects.requireNonNull(candidate, "candidate");
         return new Athlete(AthleteId.generate(), rosterId, candidate.name(), candidate.age(),
                 candidate.bodyWeight(), candidate.bodyHeight(), candidate.gender(), candidate.genetics(),
-                new CurrentStats(candidate.baseOneRepMaxes()), candidate.rarity(), false, now);
+                new CurrentStats(candidate.baseOneRepMaxes()), candidate.rarity(), false, now,
+                TrainingHistory.empty());
     }
 
     /**
@@ -83,9 +87,20 @@ public final class Athlete {
      */
     public static Athlete reconstitute(AthleteId id, RosterId rosterId, AthleteName name, int age,
                                        Weight bodyWeight, Height bodyHeight, Gender gender, Genetics genetics,
-                                       CurrentStats currentStats, Rarity rarity, boolean mirror, Instant recruitedAt) {
+                                       CurrentStats currentStats, Rarity rarity, boolean mirror, Instant recruitedAt,
+                                       TrainingHistory trainingHistory) {
         return new Athlete(id, rosterId, name, age, bodyWeight, bodyHeight, gender, genetics, currentStats,
-                rarity, mirror, recruitedAt);
+                rarity, mirror, recruitedAt, trainingHistory);
+    }
+
+    /**
+     * Applique une séance d'entraînement reçue (event {@code WorkoutLogged}) à cet athlète : retourne une
+     * nouvelle instance dont le {@link TrainingHistory} est mis à jour de façon idempotente (écrasement
+     * monotone — cf. {@link TrainingHistory#recordWorkout}). Orchestré par {@link Roster#recordMirrorWorkout}.
+     */
+    Athlete withWorkout(Instant performedAt, Set<MovementPattern> patternsCovered) {
+        return new Athlete(id, rosterId, name, age, bodyWeight, bodyHeight, gender, genetics, currentStats,
+                rarity, mirror, recruitedAt, trainingHistory.recordWorkout(performedAt, patternsCovered));
     }
 
     public Optional<OneRepMax> currentOneRepMax(MovementPattern pattern) {
@@ -138,6 +153,10 @@ public final class Athlete {
 
     public Instant recruitedAt() {
         return recruitedAt;
+    }
+
+    public TrainingHistory trainingHistory() {
+        return trainingHistory;
     }
 
     @Override

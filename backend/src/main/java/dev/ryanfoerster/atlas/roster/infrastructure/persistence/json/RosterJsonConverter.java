@@ -7,12 +7,15 @@ import dev.ryanfoerster.atlas.roster.domain.model.Gender;
 import dev.ryanfoerster.atlas.roster.domain.model.Genetics;
 import dev.ryanfoerster.atlas.roster.domain.model.Height;
 import dev.ryanfoerster.atlas.roster.domain.model.Rarity;
+import dev.ryanfoerster.atlas.roster.domain.model.TrainingHistory;
 import dev.ryanfoerster.atlas.shared.domain.MovementPattern;
 import dev.ryanfoerster.atlas.shared.domain.OneRepMax;
 import dev.ryanfoerster.atlas.shared.domain.Weight;
 
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Conversions domaine ↔ DTO JSON (le volet « sérialisation » du mapping manuel, extension d'ADR-015).
@@ -40,6 +43,14 @@ public final class RosterJsonConverter {
 
     public static CurrentStats fromJson(CurrentStatsJson j) {
         return new CurrentStats(oneRepMaxesFromJson(j.oneRepMaxByPattern()));
+    }
+
+    public static TrainingHistoryJson toJson(TrainingHistory h) {
+        return new TrainingHistoryJson(h.lastWorkoutAt(), List.copyOf(h.lastPatternsCovered()));
+    }
+
+    public static TrainingHistory fromJson(TrainingHistoryJson j) {
+        return new TrainingHistory(j.lastWorkoutAt(), Set.copyOf(j.lastPatternsCovered()));
     }
 
     public static AthleteCandidateJson toJson(AthleteCandidate c) {

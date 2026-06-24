@@ -33,6 +33,7 @@ final class AthleteMapper {
         e.setMirror(a.isMirror());
         e.setGenetics(RosterJsonConverter.toJson(a.genetics()));
         e.setCurrentStats(RosterJsonConverter.toJson(a.currentStats()));
+        e.setTrainingHistory(RosterJsonConverter.toJson(a.trainingHistory()));
         e.setRecruitedAt(a.recruitedAt());
         return e; // le lien vers le roster est posé par RosterMapper via addAthlete(...)
     }
@@ -43,6 +44,6 @@ final class AthleteMapper {
                 Weight.ofKilograms(e.getBodyWeightKg()), Height.ofCentimeters(e.getBodyHeightCm()),
                 Gender.valueOf(e.getGender()), RosterJsonConverter.fromJson(e.getGenetics()),
                 RosterJsonConverter.fromJson(e.getCurrentStats()), Rarity.valueOf(e.getRarity()),
-                e.isMirror(), e.getRecruitedAt());
+                e.isMirror(), e.getRecruitedAt(), RosterJsonConverter.fromJson(e.getTrainingHistory()));
     }
 }

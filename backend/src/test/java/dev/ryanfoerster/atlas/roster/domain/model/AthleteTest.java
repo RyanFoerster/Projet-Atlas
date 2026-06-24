@@ -20,7 +20,7 @@ class AthleteTest {
         return Athlete.reconstitute(id, RosterId.generate(), AthleteName.of("Marcus Vélaris"), age,
                 Weight.ofKilograms(80), Height.ofCentimeters(180), Gender.MALE, GeneticsTest.valid(),
                 new CurrentStats(Map.of(MovementPattern.SQUAT, OneRepMax.measured(Weight.ofKilograms(140)))),
-                rarity, false, NOW);
+                rarity, false, NOW, TrainingHistory.empty());
     }
 
     @Test

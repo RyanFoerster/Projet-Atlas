@@ -2,6 +2,7 @@ package dev.ryanfoerster.atlas.roster.infrastructure.persistence;
 
 import dev.ryanfoerster.atlas.roster.infrastructure.persistence.json.CurrentStatsJson;
 import dev.ryanfoerster.atlas.roster.infrastructure.persistence.json.GeneticsJson;
+import dev.ryanfoerster.atlas.roster.infrastructure.persistence.json.TrainingHistoryJson;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -64,6 +65,10 @@ public class AthleteJpaEntity {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "current_stats", nullable = false, columnDefinition = "jsonb")
     private CurrentStatsJson currentStats;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "training_history", nullable = false, columnDefinition = "jsonb")
+    private TrainingHistoryJson trainingHistory;
 
     @Column(name = "recruited_at", nullable = false, updatable = false)
     private Instant recruitedAt;
@@ -157,6 +162,14 @@ public class AthleteJpaEntity {
 
     public void setCurrentStats(CurrentStatsJson currentStats) {
         this.currentStats = currentStats;
+    }
+
+    public TrainingHistoryJson getTrainingHistory() {
+        return trainingHistory;
+    }
+
+    public void setTrainingHistory(TrainingHistoryJson trainingHistory) {
+        this.trainingHistory = trainingHistory;
     }
 
     public Instant getRecruitedAt() {

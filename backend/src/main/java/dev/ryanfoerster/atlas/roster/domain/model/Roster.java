@@ -2,6 +2,7 @@ package dev.ryanfoerster.atlas.roster.domain.model;
 
 import dev.ryanfoerster.atlas.roster.domain.model.exceptions.MirrorAlreadyExistsException;
 import dev.ryanfoerster.atlas.roster.domain.service.AthleteGenerator;
+import dev.ryanfoerster.atlas.shared.domain.MovementPattern;
 import dev.ryanfoerster.atlas.shared.domain.UserId;
 
 import java.time.Instant;
@@ -9,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Écurie d'un Player — <strong>seul aggregate root du module roster</strong> (ADR-019). Les
@@ -69,6 +71,19 @@ public final class Roster {
     private Roster withAthlete(Athlete athlete) {
         List<Athlete> next = new ArrayList<>(athletes);
         next.add(athlete);
+        return new Roster(id, ownerId, next, createdAt);
+    }
+
+    /**
+     * Applique une séance IRL à l'athlète <strong>miroir</strong> (consommation de l'event
+     * {@code WorkoutLogged}, ADR-025). Idempotent par écrasement monotone (la logique vit dans
+     * {@link TrainingHistory#recordWorkout}). S'il n'y a pas de miroir, c'est un no-op. Retourne une
+     * nouvelle instance (immutabilité), les athlètes virtuels sont inchangés.
+     */
+    public Roster recordMirrorWorkout(Instant performedAt, Set<MovementPattern> patternsCovered) {
+        List<Athlete> next = athletes.stream()
+                .map(a -> a.isMirror() ? a.withWorkout(performedAt, patternsCovered) : a)
+                .toList();
         return new Roster(id, ownerId, next, createdAt);
     }
 

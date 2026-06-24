@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -81,5 +82,31 @@ class RosterTest {
         Roster afterMirror = roster.addMirror(mirrorRequest(), generator, 42L, NOW);
 
         assertThat(afterMirror).isEqualTo(roster); // même RosterId, état différent
+    }
+
+    @Test
+    void recording_a_workout_updates_only_the_mirror_training_history() {
+        Roster roster = Roster.createFor(owner, NOW)
+                .addMirror(mirrorRequest(), generator, 42L, NOW)
+                .recruit(generator.generateCandidate(99L, Rarity.SPECIALIST), NOW);
+        Instant performedAt = NOW.minusSeconds(3600);
+
+        Roster updated = roster.recordMirrorWorkout(performedAt, Set.of(MovementPattern.SQUAT));
+
+        assertThat(updated.mirrorAthlete()).get().satisfies(m -> {
+            assertThat(m.trainingHistory().lastWorkoutAt()).isEqualTo(performedAt);
+            assertThat(m.trainingHistory().lastPatternsCovered()).containsExactly(MovementPattern.SQUAT);
+        });
+        // L'athlète virtuel n'a pas d'historique d'entraînement (son training viendra de Programming).
+        assertThat(updated.virtualAthletes().getFirst().trainingHistory().hasWorkouts()).isFalse();
+    }
+
+    @Test
+    void recording_a_workout_without_a_mirror_is_a_no_op() {
+        Roster empty = Roster.createFor(owner, NOW);
+
+        Roster updated = empty.recordMirrorWorkout(NOW, Set.of(MovementPattern.SQUAT));
+
+        assertThat(updated.size()).isZero();
     }
 }

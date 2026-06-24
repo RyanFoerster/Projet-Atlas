@@ -63,4 +63,23 @@ class RosterArchitectureTest {
                 .because("les events publics sont des records immuables")
                 .check(rosterClasses);
     }
+
+    /**
+     * Preuve d'isolation event-driven (sprint 3) : Roster consomme PersonalTraining UNIQUEMENT via son
+     * API publique ({@code personaltraining.api..} — l'event {@code WorkoutLogged} et le
+     * {@code PersonalTrainingQueryPort}), jamais via son domaine/application/infrastructure internes.
+     * C'est ce qui prouve que la communication inter-module préserve l'isolation (Spring Modulith
+     * l'impose aussi globalement ; on l'explicite ici pour ce couplage précis).
+     */
+    @Test
+    void roster_depends_on_personaltraining_only_through_its_api() {
+        noClasses().that().resideInAPackage(ROOT + "..")
+                .should().dependOnClassesThat().resideInAnyPackage(
+                        "dev.ryanfoerster.atlas.personaltraining.domain..",
+                        "dev.ryanfoerster.atlas.personaltraining.application..",
+                        "dev.ryanfoerster.atlas.personaltraining.infrastructure..")
+                .because("Roster ne doit dépendre de PersonalTraining que via personaltraining.api.. "
+                        + "(events + query port), jamais de son interne (isolation Modulith)")
+                .check(rosterClasses);
+    }
 }
