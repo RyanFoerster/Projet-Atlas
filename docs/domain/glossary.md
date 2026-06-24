@@ -75,7 +75,16 @@ Value object immutable porté par chaque Athlete. Définit le profil génétique
 Une séance d'entraînement concrète. Pour le MirrorAthlete, c'est une séance IRL loggée par le Player. Pour un VirtualAthlete, c'est une séance simulée par le système. Composée d'`Exercises` et de leurs `Sets`.
 
 ### WorkoutSession
-Synonyme de Workout dans le contexte du module **personaltraining** (séances IRL loggées). Aggregate root de personaltraining.
+**Aggregate root autonome** du module **personaltraining** (sprint 3) : une séance IRL loggée par le Player = un aggregate à part entière (≠ Roster qui contient une collection — cf. mini-cours sprint 3). Immutable, identité `WorkoutSessionId` (UUID v7). Invariants : ≥ 1 exercice (`EmptyWorkoutSessionException`), `performedAt` pas dans le futur (vérifié à la création via `log()`, pas dans `reconstitute()`), durée plausible, notes ≤ 500. Méthodes calculées : `totalSets`, `totalReps`, `estimatedVolume`, `patternsCovered()` (uniquement les patterns des exercices composés).
+
+### LoggedExercise
+Value object riche d'un exercice loggé dans une `WorkoutSession` (personaltraining) : un `ExerciseName`, une `ExerciseCategory` (composé ou accessoire), et ≥ 1 `ExerciseSet` (copie défensive). Pas d'identité propre — n'a de sens que dans sa séance.
+
+### ExerciseCategory (CompoundForce / Accessory)
+**Sealed interface** catégorisant un exercice loggé (ADR-026) : soit `CompoundForce(MovementPattern)` (squat, bench, deadlift… — un axe de force), soit `Accessory(BodyRegion)` (curl, gainage… — une région). Volontairement **distinct** de `MovementPattern` réutilisé tel quel : un accessoire n'est pas un axe de force génétique. Permet un `switch` exhaustif (pivot pour le stimulus Athletics au sprint 4 : composé → pattern, accessoire → région).
+
+### BodyRegion
+Énumération des régions musculaires d'un exercice **accessoire** (`BICEPS`, `TRICEPS`, `SHOULDERS`, `CHEST`, `BACK`, `FOREARMS`, `CORE`, `GLUTES`, `QUADS`, `HAMSTRINGS`, `CALVES`). Interne au module personaltraining au sprint 3 ; promotion possible vers `shared` au sprint 4 si Athletics en a besoin. Distinct de `MuscleGroup` (mapping à définir au sprint 4, ADR-026 : `BACK` plus grossier, `FOREARMS` sans équivalent).
 
 ### Exercise
 Un exercice spécifique réalisé dans un Workout. Ex : "Squat barre dos", "Bench press incliné", "Tirage horizontal". Chaque Exercise est mappé à un ou plusieurs `MovementPattern` et à un set de `MuscleGroup` impactés, avec des coefficients de pondération.
@@ -96,7 +105,7 @@ Une série dans un Exercise. Composée d'un nombre de répétitions, d'un poids 
 Value object représentant un poids. Encapsule une valeur `BigDecimal` (précision) et une unité (`KG` ou `LB`). Empêche les confusions d'unités et les valeurs négatives.
 
 ### RPE (Rate of Perceived Exertion)
-Échelle 1 à 10 de l'effort perçu. Value object validant la plage. Convertible vers/depuis une intensité relative (% 1RM approximatif).
+Échelle de l'effort perçu, **1.0 à 10.0 par incréments de 0.5** (ex. 7.5, 8.5 — standard powerlifting). Value object auto-validant. Introduit dans `personaltraining.domain` au sprint 3 (optionnel sur une `ExerciseSet`) ; promotion possible vers `shared` au sprint 4 si Athletics en a besoin (critère ADR-017).
 
 ### OneRepMax
 Value object représentant un 1RM. Précise s'il est `MEASURED` (testé en vrai) ou `ESTIMATED` (calculé par formule Epley/Brzycki). La confiance attribuée varie selon le type.
@@ -185,6 +194,9 @@ Entity du module roster : un `AthleteCandidate` **persisté temporairement** (id
 ### MirrorCreationRequest
 Value object groupant les saisies du Player pour créer son miroir (nom, âge, poids, taille, sexe, 1RM mesurés). Le backend en dérive une `Genetics` hybride (les ratios force/poids orientent les affinités de force, ADR-021).
 
+### TrainingHistory
+Value object sur l'`Athlete` **miroir** (roster) : trace passive de la **dernière** séance IRL reçue — `lastWorkoutAt` + `lastPatternsCovered` (patterns de force uniquement). **Pas de compteur** : le nombre de séances a sa source de vérité dans personaltraining (option D, ADR-025), interrogé via `PersonalTrainingQueryPort` à l'affichage. Mis à jour par **écrasement monotone** (cf. *idempotence par écrasement monotone*) à la consommation de `WorkoutLogged`. Au sprint 4, Athletics enrichira ces données pour piloter le `FitnessFatigueState`.
+
 ### AthleteProfile
 Sous-objet de l'Athlete affichant les informations publiques : nom, âge, poids, classe (powerlifter, strongman, bodybuilder, etc.), photo générée, historique des performances notables.
 
@@ -245,7 +257,22 @@ Deux niveaux, souvent confondus :
 - **Spring `ApplicationEvent`** : le mécanisme de publication standard de Spring (`ApplicationEventPublisher.publishEvent(...)`). Synchrone par défaut, en mémoire. C'est ce qu'on utilise aujourd'hui pour publier `PlayerRegistered`/`PlayerLoggedIn` depuis les use cases.
 - **Spring Modulith event** : par-dessus, Modulith ajoute un **event publication registry** qui *persiste* les events consommés par un `@ApplicationModuleListener` (un `@TransactionalEventListener` durable). Cela permet la livraison fiable et le passage progressif à l'asynchrone entre modules (un consommateur qui plante ne perd pas l'event).
 
-En clair : on **publie** des `ApplicationEvent` ; Modulith les **fiabilise** dès qu'un module les consomme via un listener dédié. Au Sprint 1, on publie sans consommateur encore (les `eventhandler/` sont vides) — la fiabilisation Modulith deviendra visible quand un module écoutera réellement.
+En clair : on **publie** des `ApplicationEvent` ; Modulith les **fiabilise** dès qu'un module les consomme via un listener dédié. **Devenu réel au sprint 3** : `personaltraining` publie `WorkoutLogged`, `roster` le consomme — premier event inter-module en production (ADR-023).
+
+### WorkoutLogged (event)
+Event public publié par **personaltraining** quand une séance est loggée, consommé par **roster** (sprint 3) puis **athletics** (sprint 4). Autosuffisant : transporte tout ce dont un consumer a besoin (owner, séance, exercices **aplatis en snapshots**), pour qu'il ne re-query jamais l'émetteur. Types primitifs / `shared` uniquement (UUID, `MovementPattern`), jamais le domaine interne (isolation, ADR-024). Publié **dans** la transaction du use case (*transactional outbox*).
+
+### Transactional outbox
+Pattern de fiabilisation des events : l'event est **persisté** (table `event_publication`) dans la **même transaction** que la donnée métier, puis marqué complété quand le consumer réussit. Géré par l'*event publication registry* de Spring Modulith (ADR-023). Garantit qu'une séance commitée a toujours son event tracé (re-livré au restart si le consumer échoue). Livraison **at-least-once**, pas exactly-once → le consumer doit être idempotent.
+
+### Idempotence par écrasement monotone
+Stratégie d'idempotence d'un consumer (ADR-025) : plutôt que d'incrémenter un état (fragile au rejeu), on **n'écrit que si l'event est strictement plus récent** que le dernier connu. Rejouer un event (ou en recevoir un dans le désordre) = no-op. Utilisé par `WorkoutLoggedHandler` pour le `lastWorkoutAt` du miroir. Idempotent **par construction**, sans mémoriser d'identifiant d'event.
+
+### Named interface (Modulith)
+Déclaration `@NamedInterface("api")` sur un package, qui le rend **exposé** aux autres modules. Par défaut Spring Modulith n'expose que le **package racine** d'un module ; un sous-package (`api`, `api.events`) reste interne sauf déclaration. Concrétise la règle « les modules externes n'importent que de `api/` » (CLAUDE.md), vérifiée par `AtlasApplicationModulesTest` + ArchUnit. Première utilisation : sprint 3 (`personaltraining.api`).
+
+### Snapshot DTO (event)
+Forme **aplatie** d'un objet du domaine, transportée par un event public (ADR-024). Évite d'exposer le domaine interne (un sealed `ExerciseCategory`, un VO `LoggedExercise`) dans le contrat public. Ex. `LoggedExerciseSnapshot` : discriminant `categoryType` + champs nullables, `BodyRegion` en `String`.
 
 ---
 
