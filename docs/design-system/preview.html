@@ -393,6 +393,51 @@
       </div>
     </div>
 
+    <!-- ConditionGauge — indicateur de Forme (3 états) -->
+    <div style="font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-tertiary); margin:36px 0 18px;">ConditionGauge — Forme Banister (Cuit / Frais / Affûté · ambre, pas rouge)</div>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:18px; align-items:start;">
+
+      <!-- AFFÛTÉ -->
+      <div style="border-radius:12px; background:var(--surface-base); border:1px solid var(--border-subtle); padding:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; margin-bottom:12px;">
+          <div><div style="font-family:'IBM Plex Sans'; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:4px;">Forme</div><div style="font-family:'IBM Plex Mono'; font-size:30px; line-height:1; color:var(--text-primary);">88<span style="font-size:15px; color:var(--text-tertiary);">/100</span></div></div>
+          <span style="display:inline-flex; align-items:center; height:22px; padding:0 9px; border-radius:6px; font-family:'IBM Plex Sans'; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; background:var(--success-surface); color:var(--success);">Affûté</span>
+        </div>
+        <div style="position:relative; height:8px; border-radius:4px; background:var(--surface-sunken); border:1px solid var(--border-subtle);"><div style="position:absolute; left:0; top:0; bottom:0; width:88%; border-radius:4px; background:var(--success);"></div><div style="position:absolute; top:-3px; bottom:-3px; left:50%; width:2px; background:var(--text-tertiary);"></div></div>
+        <div style="margin-top:16px; display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex; align-items:center; gap:12px;"><span style="width:58px; font-family:'IBM Plex Sans'; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-tertiary);">Acquis</span><div style="position:relative; flex:1; height:4px; border-radius:9999px; background:var(--surface-sunken);"><div style="position:absolute; left:0; top:0; bottom:0; width:100%; border-radius:9999px; background:var(--accent);"></div></div></div>
+          <div style="display:flex; align-items:center; gap:12px;"><span style="width:58px; font-family:'IBM Plex Sans'; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-tertiary);">Fatigue</span><div style="position:relative; flex:1; height:4px; border-radius:9999px; background:var(--surface-sunken);"><div style="position:absolute; left:0; top:0; bottom:0; width:14%; border-radius:9999px; background:var(--warning);"></div></div></div>
+        </div>
+      </div>
+
+      <!-- FRAIS -->
+      <div style="border-radius:12px; background:var(--surface-base); border:1px solid var(--border-subtle); padding:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; margin-bottom:12px;">
+          <div><div style="font-family:'IBM Plex Sans'; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:4px;">Forme</div><div style="font-family:'IBM Plex Mono'; font-size:30px; line-height:1; color:var(--text-primary);">52<span style="font-size:15px; color:var(--text-tertiary);">/100</span></div></div>
+          <span style="display:inline-flex; align-items:center; height:22px; padding:0 9px; border-radius:6px; font-family:'IBM Plex Sans'; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; background:var(--surface-raised-2); color:var(--text-secondary); border:1px solid var(--border-default);">Frais</span>
+        </div>
+        <div style="position:relative; height:8px; border-radius:4px; background:var(--surface-sunken); border:1px solid var(--border-subtle);"><div style="position:absolute; left:0; top:0; bottom:0; width:52%; border-radius:4px; background:var(--text-tertiary);"></div><div style="position:absolute; top:-3px; bottom:-3px; left:50%; width:2px; background:var(--text-tertiary);"></div></div>
+        <div style="margin-top:16px; display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex; align-items:center; gap:12px;"><span style="width:58px; font-family:'IBM Plex Sans'; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-tertiary);">Acquis</span><div style="position:relative; flex:1; height:4px; border-radius:9999px; background:var(--surface-sunken);"><div style="position:absolute; left:0; top:0; bottom:0; width:74%; border-radius:9999px; background:var(--accent);"></div></div></div>
+          <div style="display:flex; align-items:center; gap:12px;"><span style="width:58px; font-family:'IBM Plex Sans'; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-tertiary);">Fatigue</span><div style="position:relative; flex:1; height:4px; border-radius:9999px; background:var(--surface-sunken);"><div style="position:absolute; left:0; top:0; bottom:0; width:54%; border-radius:9999px; background:var(--warning);"></div></div></div>
+        </div>
+      </div>
+
+      <!-- CUIT -->
+      <div style="border-radius:12px; background:var(--surface-base); border:1px solid var(--border-subtle); padding:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; margin-bottom:12px;">
+          <div><div style="font-family:'IBM Plex Sans'; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--text-tertiary); margin-bottom:4px;">Forme</div><div style="font-family:'IBM Plex Mono'; font-size:30px; line-height:1; color:var(--text-primary);">14<span style="font-size:15px; color:var(--text-tertiary);">/100</span></div></div>
+          <span style="display:inline-flex; align-items:center; height:22px; padding:0 9px; border-radius:6px; font-family:'IBM Plex Sans'; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; background:var(--warning-surface); color:var(--warning);">Cuit</span>
+        </div>
+        <div style="position:relative; height:8px; border-radius:4px; background:var(--surface-sunken); border:1px solid var(--border-subtle);"><div style="position:absolute; left:0; top:0; bottom:0; width:14%; border-radius:4px; background:var(--warning);"></div><div style="position:absolute; top:-3px; bottom:-3px; left:50%; width:2px; background:var(--text-tertiary);"></div></div>
+        <div style="margin-top:16px; display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex; align-items:center; gap:12px;"><span style="width:58px; font-family:'IBM Plex Sans'; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-tertiary);">Acquis</span><div style="position:relative; flex:1; height:4px; border-radius:9999px; background:var(--surface-sunken);"><div style="position:absolute; left:0; top:0; bottom:0; width:86%; border-radius:9999px; background:var(--accent);"></div></div></div>
+          <div style="display:flex; align-items:center; gap:12px;"><span style="width:58px; font-family:'IBM Plex Sans'; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-tertiary);">Fatigue</span><div style="position:relative; flex:1; height:4px; border-radius:9999px; background:var(--surface-sunken);"><div style="position:absolute; left:0; top:0; bottom:0; width:100%; border-radius:9999px; background:var(--warning);"></div></div></div>
+        </div>
+      </div>
+
+    </div>
+
   </div>
 </div>
 </x-dc>

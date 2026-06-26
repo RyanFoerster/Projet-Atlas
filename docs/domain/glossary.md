@@ -114,29 +114,46 @@ Value object représentant un 1RM. Précise s'il est `MEASURED` (testé en vrai)
 
 ## Modèle Fitness-Fatigue
 
+> **État sprint 4** : modèle de Banister **stat globale** (une paire fitness/fatigue par athlète). Le raffinement par `MuscleGroup`, le mapping pondéré, l'individualisation génétique et la progression des CurrentStats partent au **sprint 5** (ADR-004).
+
 ### TrainingStimulus
-Value object qui représente ce qu'un Workout "inflige" à un Athlete. Contient la distribution du volume effectif sur les `MuscleGroup`, l'intensité moyenne par `MovementPattern`, la charge sur les `EnergySystem`, et le RPE global. C'est l'input principal du `FitnessFatigueModel`.
+Value object : l'impulsion qu'une séance inflige à un Athlete. **Sprint 4** : une **magnitude scalaire globale**, calculée par le `StimulusCalculator` (`Σ reps × effort(rpe)`, charge absolue exclue — ADR-028). **Sprint 5** : distribution par `MuscleGroup`. Input du `BanisterModel`.
+
+### StimulusCalculator
+Domain service stateless : convertit les séries d'une séance en `TrainingStimulus`. Sprint 4 : `S = NORM × Σ reps × effort(rpe)`, `effort(rpe) = rpe/10`, RPE absent → 0.7 (neutre). Le mapping séance→impulsion de Banister **n'a pas de littérature** → calibration Atlas assumée (ADR-028, `sport-science.md`).
 
 ### FitnessFatigueState
-Value object porté par l'Athlete, représentant son état dynamique à un instant donné. Contient les valeurs de **fitness** et de **fatigue** par `MuscleGroup`, plus les valeurs aérobie/anaérobie globales, plus le `lastUpdated: Instant`.
+Value object immutable de l'état dynamique d'un Athlete à un instant donné. **Sprint 4** : une **paire globale** `(fitness, fatigue)` + `lastUpdated: Instant`. **Sprint 5** : par `MuscleGroup`.
+
+### AthleteCondition
+**Aggregate root du module athletics** (sprint 4) : l'état dynamique d'un athlète, clé par `AthleteId`. Porte un `FitnessFatigueState`, le fait évoluer via le `BanisterModel`. Distinct de l'identité statique (nom, génétique) qui vit dans **Roster** — l'athlète « complet » est une composition à l'affichage (ADR-027).
 
 ### Fitness
-Adaptation positive à long terme suite aux stimuli. Monte lentement (impulse à chaque stimulus), redescend lentement au repos (décroissance exponentielle, constante de temps ~30-50 jours). Stocké par MuscleGroup et globalement pour aérobie/anaérobie.
+Adaptation positive. Monte modérément à chaque stimulus, redescend **lentement** (décroissance exponentielle, `τ_fitness ≈ 42 j`). Court terme (semaines) — distincte de la force structurelle (`CurrentStats`).
 
 ### Fatigue
-Effet aigu négatif suite aux stimuli. Monte rapidement, redescend rapidement (constante de temps ~7-15 jours). La performance immédiate dépend de Fitness − k × Fatigue.
+Effet aigu négatif. Monte fortement, redescend **vite** (`τ_fatigue ≈ 7 j`). Performance disponible = `k1·fitness − k2·fatigue` (k1=1, k2=2).
 
-### Form / Readiness
-Pas un attribut stocké, mais une mesure dérivée : `form(muscleGroup) = fitness - k × fatigue`. Positif = sur-compensation (peak), négatif = sur-fatigue. Calculée à la demande.
+### Supercompensation
+Phénomène **émergent** du modèle : après une séance, la fatigue (τ court) s'efface plus vite que la fitness (τ long) → la performance dépasse le niveau initial. Fondement de la périodisation et du **deload**. Validée par la simulation 12 semaines (GATE 1, sprint 4) — non codée, émergente de la dynamique.
 
-### FitnessFatigueModel
-Domain service stateless qui implémente les équations de Banister. Prend un FitnessFatigueState, un TrainingStimulus, un Duration, et retourne un nouveau FitnessFatigueState. Aucune dépendance Spring/JPA.
+### Indice de Forme
+Synthèse de présentation 0–100 (50 = neutre) : `50 + 50·(performance/fitness)`, clampé. **Indépendant de l'échelle interne NORM** (le ratio l'annule). États : `Cuit` (<40), `Frais` (40–60), `Affûté` (>60). Affiché par le composant `ConditionGauge` (design system §4.16).
+
+### BanisterModel
+Domain service stateless (ex-`FitnessFatigueModel`) : le modèle de Banister en **forme récursive discrète** — `decay` (décroissance exponentielle depuis `lastUpdated`), `applyStimulus` (decay + ajout de l'impulsion à fitness ET fatigue), `availablePerformance` (`k1·fitness − k2·fatigue`). Zéro Spring/JPA, constantes sourcées/assumées (ADR-028).
+
+### Decay / Lazy compute
+On ne tick jamais les athlètes (pas de scheduler, ADR-006) : l'état stocké `(fitness, fatigue, lastUpdated)` est **décru à la volée** à la lecture/application (`exp(−Δt/τ)`). La forme récursive ne garde que l'état courant + le timestamp — pas de ré-intégration de tout l'historique (convolution continue), trop coûteuse.
+
+### ConditionSnapshot
+Point daté `(fitness, fatigue, performance)` capturé **à chaque séance appliquée** (append-only). Alimentera les **courbes du sprint 7** (Insights). `performance` peut être négative (athlète « cuit »).
 
 ### CurrentStats
-Value object porté par l'Athlete, représentant ses capacités **structurelles** long terme : 1RM par MovementPattern (en `OneRepMax`), masse musculaire estimée par MuscleGroup, VO2max, capacité anaérobie, poids de corps, % de masse grasse. Distinct du FitnessFatigueState : un deload baisse la fitness mais pas la masse musculaire.
+Value object porté par l'Athlete (module **roster**), capacités **structurelles** long terme : 1RM par MovementPattern (`OneRepMax`). **Sprint 4** : stables — Athletics ne les touche pas, un deload baisse la fitness mais PAS le 1RM (la distinction court/long terme, cœur du sprint). **Sprint 5** : leur progression (montée lente quasi-irréversible) sera pilotée par Athletics.
 
 ### AdaptationCalculator
-Domain service stateless qui calcule comment les CurrentStats long terme évoluent en réponse à des stimuli cumulés sur des semaines/mois. Tient compte de la Genetics, du TrainingAge, de la NutritionPhase.
+Domain service **prévu sprint 5** : progression long terme des CurrentStats sous stimulus chronique (Genetics, TrainingAge). Pas encore implémenté au sprint 4.
 
 ### InterferencePolicy
 Domain policy qui modélise l'interférence aérobie-force (concurrent training effect). Si un cardio long suit un entraînement de force dans une fenêtre courte, les gains de force sont réduits de 20-30%.

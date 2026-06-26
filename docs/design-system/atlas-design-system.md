@@ -576,6 +576,36 @@ Carte d'une séance dans l'historique chronologique (`/training`). `Card` **inte
 - **Empty state** (historique vide) : **par composition** (layout + voix « Tu n'as pas encore loggé de séance. »),
   pas de nouveau composant (doctrine async-states).
 
+### 4.16 ConditionGauge — indicateur de Forme (module athletics)
+
+Affiche l'état de forme **dynamique** (Fitness-Fatigue de Banister) d'un athlète sur sa fiche. À distinguer du
+`StatBlock` (§4.9, génétique **statique**, fill bronze neutre) : ici l'état est dynamique, donc les **couleurs
+sémantiques minérales sont légitimes** — exactement l'usage que la §4.9 réserve aux « deltas dynamiques ».
+
+- **Anatomie** :
+  - **En-tête** : label `FORME` (caption) + grand **indice 0–100** (Plex Mono tabular, `--text-primary`) ;
+    **pill d'état** (`Cuit`/`Frais`/`Affûté`) à droite.
+  - **Barre de forme** : track `--surface-sunken` + `border-subtle` (hauteur `8px`), fill = couleur d'état,
+    largeur = indice %. **Tick neutre à 50** (`--text-tertiary`, idiome baseline du StatBlock) — sous 50 =
+    sur-fatigué, au-dessus = affûté.
+  - **Détail Acquis / Fatigue** : deux **mini-barres plus fines** (hauteur `4px`, `rounded-full`, sous un
+    libellé), normalisées sur `max(fitness, fatigue)` — l'échelle interne NORM n'est pas lisible en absolu, on
+    montre la **proportion relative**. `Acquis` (fitness) en `--accent` (bronze = capital), `Fatigue` en
+    `--warning` (ambre = fatigue résiduelle). **Visuellement distinctes de la grande barre** (plus fines).
+- **États / couleurs** (minéral, jamais de feu tricolore) :
+  - `Affûté` → `--success` (vert-de-gris) ; pill `--success-surface` / `--success`.
+  - `Frais` → neutre ; pill `--surface-raised-2` / `--text-secondary` / `border --border-default`.
+  - `Cuit` → `--warning` (ambre). **Pas `--danger`** : la sur-fatigue est un état d'entraînement normal et
+    nécessaire, pas une erreur — l'ambre dit « à surveiller » sans dramatiser (point de crédibilité lifting).
+- **Mapping indice** : `50 + 50·(performance/fitness)`, clampé [0,100] — indépendant de l'échelle NORM (le
+  ratio l'annule). 50 = neutre ; sans données (fitness≈0) → 50/Frais.
+- **Portée** : **miroir uniquement** au sprint 4 (seul athlète entraîné) et seulement **après ≥1 séance** —
+  sinon **absence de section** (pas de « Frais 50 » de bruit). Activé pour les virtuels au sprint 6.
+- **Accessibilité** : `role="img"` + `aria-label` synthétique (« Forme : 72 sur 100, affûté »). Contrastes AA
+  dans les deux modes.
+- **Async** : 2ᵉ fetch (`/api/athletes/:id/condition`) ; **dégradation gracieuse** — un échec n'enlève pas le
+  reste de la fiche, la section Forme est simplement omise (doctrine async-states).
+
 ---
 
 ## 5. Patterns & layouts canoniques
