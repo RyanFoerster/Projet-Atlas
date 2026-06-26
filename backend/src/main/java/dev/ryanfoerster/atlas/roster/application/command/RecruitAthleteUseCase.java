@@ -2,7 +2,7 @@ package dev.ryanfoerster.atlas.roster.application.command;
 
 import dev.ryanfoerster.atlas.roster.api.events.AthleteRecruited;
 import dev.ryanfoerster.atlas.roster.domain.model.Athlete;
-import dev.ryanfoerster.atlas.roster.domain.model.AthleteId;
+import dev.ryanfoerster.atlas.shared.domain.AthleteId;
 import dev.ryanfoerster.atlas.roster.domain.model.Roster;
 import dev.ryanfoerster.atlas.roster.domain.model.ScoutedCandidate;
 import dev.ryanfoerster.atlas.roster.domain.model.ScoutedCandidateId;

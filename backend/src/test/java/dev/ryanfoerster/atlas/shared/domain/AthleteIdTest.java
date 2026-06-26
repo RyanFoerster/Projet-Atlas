@@ -1,4 +1,4 @@
-package dev.ryanfoerster.atlas.roster.domain.model;
+package dev.ryanfoerster.atlas.shared.domain;
 
 import org.junit.jupiter.api.Test;
 

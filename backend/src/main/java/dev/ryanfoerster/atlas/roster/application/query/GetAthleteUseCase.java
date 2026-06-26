@@ -1,7 +1,7 @@
 package dev.ryanfoerster.atlas.roster.application.query;
 
 import dev.ryanfoerster.atlas.roster.domain.model.Athlete;
-import dev.ryanfoerster.atlas.roster.domain.model.AthleteId;
+import dev.ryanfoerster.atlas.shared.domain.AthleteId;
 import dev.ryanfoerster.atlas.roster.domain.port.RosterRepository;
 import dev.ryanfoerster.atlas.shared.domain.UserId;
 import org.springframework.stereotype.Service;

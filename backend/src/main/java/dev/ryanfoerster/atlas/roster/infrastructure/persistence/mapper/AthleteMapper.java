@@ -1,7 +1,7 @@
 package dev.ryanfoerster.atlas.roster.infrastructure.persistence.mapper;
 
 import dev.ryanfoerster.atlas.roster.domain.model.Athlete;
-import dev.ryanfoerster.atlas.roster.domain.model.AthleteId;
+import dev.ryanfoerster.atlas.shared.domain.AthleteId;
 import dev.ryanfoerster.atlas.roster.domain.model.AthleteName;
 import dev.ryanfoerster.atlas.roster.domain.model.Gender;
 import dev.ryanfoerster.atlas.roster.domain.model.Height;

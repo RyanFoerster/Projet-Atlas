@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { Athlete, CreateMirrorRequest, Roster, ScoutResponse } from './roster.models';
+import { Athlete, AthleteCondition, CreateMirrorRequest, Roster, ScoutResponse } from './roster.models';
 
 // Same-origin (ADR-018). XSRF posé automatiquement par withXsrfConfiguration (app.config).
 const ROSTER_API = '/api/roster';
@@ -29,6 +29,14 @@ export class RosterService {
 
   getAthlete(id: string): Observable<Athlete> {
     return this.http.get<Athlete>(`${ROSTER_API}/athletes/${id}`);
+  }
+
+  /**
+   * État de forme Banister d'un athlète (servi par le module athletics, endpoint dédié — pas de
+   * composition backend pour éviter un cycle Roster↔Athletics, ADR-027). Composition côté frontend.
+   */
+  getAthleteCondition(id: string): Observable<AthleteCondition> {
+    return this.http.get<AthleteCondition>(`/api/athletes/${id}/condition`);
   }
 
   /** Propose un candidat (non recruté). 200, non adressable. */

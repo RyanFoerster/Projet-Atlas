@@ -1,12 +1,17 @@
-package dev.ryanfoerster.atlas.roster.domain.model;
+package dev.ryanfoerster.atlas.shared.domain;
 
 import com.github.f4b6a3.uuid.UuidCreator;
 
 import java.util.UUID;
 
 /**
- * Identifiant d'un {@link Athlete}, UUID v7 (RFC 9562). Même pattern que les autres identifiants
+ * Identifiant d'un athlète, UUID v7 (RFC 9562). Même pattern que les autres identifiants
  * d'aggregate/entity du projet (ADR-014).
+ *
+ * <p><strong>Kernel partagé</strong> (ADR-017) : promu depuis {@code roster.domain.model} au sprint 4
+ * lorsqu'un 2<sup>e</sup> module (Athletics) en a eu besoin — Athletics clé son aggregate
+ * {@code AthleteCondition} par {@code AthleteId} (ADR-027). L'identité d'un athlète est désormais
+ * transverse (Roster le possède, Athletics et Programming le référencent), comme {@code UserId}.
  */
 public record AthleteId(UUID value) {
 

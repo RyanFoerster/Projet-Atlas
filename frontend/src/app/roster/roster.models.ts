@@ -33,6 +33,23 @@ export interface TrainingHistoryView {
   lastPatternsCovered: string[];
 }
 
+export type FormState = 'CUIT' | 'FRAIS' | 'AFFUTE';
+
+/**
+ * État de forme Banister d'un athlète (module athletics, `/api/athletes/:id/condition`). `fitness`/`fatigue`
+ * sont à l'échelle interne NORM (non lisibles en absolu — affichés en proportion). `formIndex` 0–100 et
+ * `formState` sont la synthèse de présentation (50 = neutre). `performance` peut être négative (« cuit »).
+ */
+export interface AthleteCondition {
+  athleteId: string;
+  fitness: number;
+  fatigue: number;
+  performance: number;
+  formIndex: number;
+  formState: FormState;
+  asOf: string;
+}
+
 export interface AthleteSummary {
   id: string;
   name: string;

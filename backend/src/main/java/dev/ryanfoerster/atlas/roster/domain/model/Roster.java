@@ -2,6 +2,7 @@ package dev.ryanfoerster.atlas.roster.domain.model;
 
 import dev.ryanfoerster.atlas.roster.domain.model.exceptions.MirrorAlreadyExistsException;
 import dev.ryanfoerster.atlas.roster.domain.service.AthleteGenerator;
+import dev.ryanfoerster.atlas.shared.domain.AthleteId;
 import dev.ryanfoerster.atlas.shared.domain.MovementPattern;
 import dev.ryanfoerster.atlas.shared.domain.UserId;
 

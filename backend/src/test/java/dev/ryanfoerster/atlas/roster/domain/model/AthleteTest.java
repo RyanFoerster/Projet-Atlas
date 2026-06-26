@@ -1,6 +1,7 @@
 package dev.ryanfoerster.atlas.roster.domain.model;
 
 import dev.ryanfoerster.atlas.roster.domain.model.exceptions.InvalidAgeException;
+import dev.ryanfoerster.atlas.shared.domain.AthleteId;
 import dev.ryanfoerster.atlas.shared.domain.MovementPattern;
 import dev.ryanfoerster.atlas.shared.domain.OneRepMax;
 import dev.ryanfoerster.atlas.shared.domain.Weight;
