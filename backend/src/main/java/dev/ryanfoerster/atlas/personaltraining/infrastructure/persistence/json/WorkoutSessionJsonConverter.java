@@ -1,6 +1,5 @@
 package dev.ryanfoerster.atlas.personaltraining.infrastructure.persistence.json;
 
-import dev.ryanfoerster.atlas.personaltraining.domain.model.BodyRegion;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseCategory;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseCategory.Accessory;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseCategory.CompoundForce;
@@ -8,6 +7,7 @@ import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseName;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseSet;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.LoggedExercise;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.RPE;
+import dev.ryanfoerster.atlas.shared.domain.BodyRegion;
 import dev.ryanfoerster.atlas.shared.domain.MovementPattern;
 import dev.ryanfoerster.atlas.shared.domain.Weight;
 

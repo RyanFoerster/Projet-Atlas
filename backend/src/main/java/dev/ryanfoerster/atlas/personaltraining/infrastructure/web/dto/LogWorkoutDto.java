@@ -1,6 +1,6 @@
 package dev.ryanfoerster.atlas.personaltraining.infrastructure.web.dto;
 
-import dev.ryanfoerster.atlas.personaltraining.domain.model.BodyRegion;
+import dev.ryanfoerster.atlas.shared.domain.BodyRegion;
 import dev.ryanfoerster.atlas.shared.domain.MovementPattern;
 
 import java.math.BigDecimal;

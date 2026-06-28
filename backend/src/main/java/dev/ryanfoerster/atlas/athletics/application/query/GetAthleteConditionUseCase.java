@@ -44,7 +44,8 @@ public class GetAthleteConditionUseCase {
                 })
                 .orElseGet(() -> FitnessFatigueState.initial(now));
         double performance = banisterModel.availablePerformance(state);
-        return new CurrentCondition(athleteId, state.fitness(), state.fatigue(), performance, state.lastUpdated());
+        return new CurrentCondition(athleteId, state.totalFitness(), state.totalFatigue(), performance,
+                state.lastUpdated());
     }
 
     /** Condition courante projetée à la lecture. {@code performance} peut être négative (athlète « cuit »). */

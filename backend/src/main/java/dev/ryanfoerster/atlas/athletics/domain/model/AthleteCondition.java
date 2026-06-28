@@ -2,8 +2,10 @@ package dev.ryanfoerster.atlas.athletics.domain.model;
 
 import dev.ryanfoerster.atlas.athletics.domain.service.BanisterModel;
 import dev.ryanfoerster.atlas.shared.domain.AthleteId;
+import dev.ryanfoerster.atlas.shared.domain.MuscleGroup;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -23,36 +25,45 @@ public final class AthleteCondition {
 
     private final AthleteId athleteId;
     private final FitnessFatigueState state;
+    private final GeneticModifiers geneticModifiers;
 
-    private AthleteCondition(AthleteId athleteId, FitnessFatigueState state) {
+    private AthleteCondition(AthleteId athleteId, FitnessFatigueState state, GeneticModifiers geneticModifiers) {
         this.athleteId = Objects.requireNonNull(athleteId, "athleteId");
         this.state = Objects.requireNonNull(state, "state");
-    }
-
-    /** Condition initiale d'un athlète (fitness/fatigue à zéro), datée de {@code at}. */
-    public static AthleteCondition initial(AthleteId athleteId, Instant at) {
-        return new AthleteCondition(athleteId, FitnessFatigueState.initial(at));
-    }
-
-    /** <strong>FOR PERSISTENCE LAYER ONLY</strong> (ADR-015) : réhydrate depuis un état stocké. */
-    public static AthleteCondition reconstitute(AthleteId athleteId, FitnessFatigueState state) {
-        return new AthleteCondition(athleteId, state);
+        this.geneticModifiers = Objects.requireNonNull(geneticModifiers, "geneticModifiers");
     }
 
     /**
-     * Applique un stimulus daté de {@code at} : décroît l'état jusqu'à {@code at} puis ajoute l'impulsion
-     * (délégué au {@link BanisterModel} pur). Retourne une nouvelle instance.
+     * Condition initiale d'un athlète (fitness/fatigue à zéro), datée de {@code at}, avec ses modificateurs
+     * génétiques <strong>résolus une fois pour toutes</strong> (la {@code Genetics} est immutable, ADR-031).
      */
-    public AthleteCondition applyStimulus(BanisterModel model, TrainingStimulus stimulus, Instant at) {
-        return new AthleteCondition(athleteId, model.applyStimulus(state, stimulus, at));
+    public static AthleteCondition initial(AthleteId athleteId, GeneticModifiers geneticModifiers, Instant at) {
+        return new AthleteCondition(athleteId, FitnessFatigueState.initial(at), geneticModifiers);
+    }
+
+    /** <strong>FOR PERSISTENCE LAYER ONLY</strong> (ADR-015) : réhydrate depuis un état + modifiers stockés. */
+    public static AthleteCondition reconstitute(AthleteId athleteId, FitnessFatigueState state,
+                                                GeneticModifiers geneticModifiers) {
+        return new AthleteCondition(athleteId, state, geneticModifiers);
     }
 
     /**
-     * Projette l'état jusqu'à {@code at} par décroissance pure — <strong>lazy compute</strong> (ADR-006)
-     * pour la lecture/affichage. Ne mute pas la condition, ne se persiste pas.
+     * Applique un stimulus <strong>distribué par muscle</strong> daté de {@code at} : décroît l'état jusqu'à
+     * {@code at} puis ajoute l'impulsion de chaque muscle, le tout <strong>modulé par la génétique</strong>
+     * de l'athlète (délégué au {@link BanisterModel} pur). Retourne une nouvelle instance.
+     */
+    public AthleteCondition applyStimulus(BanisterModel model, Map<MuscleGroup, TrainingStimulus> distributed,
+                                          Instant at) {
+        return new AthleteCondition(athleteId, model.applyStimulus(state, distributed, geneticModifiers, at),
+                geneticModifiers);
+    }
+
+    /**
+     * Projette l'état jusqu'à {@code at} par décroissance pure (modulée par la génétique) —
+     * <strong>lazy compute</strong> (ADR-006) pour la lecture/affichage. Ne mute pas la condition.
      */
     public FitnessFatigueState projectedTo(BanisterModel model, Instant at) {
-        return model.decayedTo(state, at);
+        return model.decayedTo(state, geneticModifiers, at);
     }
 
     /**
@@ -71,6 +82,10 @@ public final class AthleteCondition {
 
     public FitnessFatigueState state() {
         return state;
+    }
+
+    public GeneticModifiers geneticModifiers() {
+        return geneticModifiers;
     }
 
     @Override

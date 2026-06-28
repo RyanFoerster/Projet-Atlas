@@ -3,6 +3,7 @@ package dev.ryanfoerster.atlas.personaltraining.domain.model;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.exceptions.EmptyWorkoutSessionException;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.exceptions.InvalidPerformedAtException;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.exceptions.InvalidWorkoutSessionException;
+import dev.ryanfoerster.atlas.shared.domain.BodyRegion;
 import dev.ryanfoerster.atlas.shared.domain.MovementPattern;
 import dev.ryanfoerster.atlas.shared.domain.UserId;
 import dev.ryanfoerster.atlas.shared.domain.Weight;

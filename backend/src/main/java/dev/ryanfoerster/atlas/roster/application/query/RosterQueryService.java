@@ -1,7 +1,9 @@
 package dev.ryanfoerster.atlas.roster.application.query;
 
+import dev.ryanfoerster.atlas.roster.api.GeneticProfile;
 import dev.ryanfoerster.atlas.roster.api.RosterQueryPort;
 import dev.ryanfoerster.atlas.roster.domain.model.Athlete;
+import dev.ryanfoerster.atlas.roster.domain.model.Genetics;
 import dev.ryanfoerster.atlas.roster.domain.port.RosterRepository;
 import dev.ryanfoerster.atlas.shared.domain.AthleteId;
 import dev.ryanfoerster.atlas.shared.domain.UserId;
@@ -27,5 +29,17 @@ public class RosterQueryService implements RosterQueryPort {
         return rosterRepository.findByOwnerId(owner)
                 .flatMap(roster -> roster.mirrorAthlete())
                 .map(Athlete::id);
+    }
+
+    @Override
+    public Optional<GeneticProfile> findGeneticProfile(AthleteId athleteId) {
+        return rosterRepository.findByAthleteId(athleteId)
+                .flatMap(roster -> roster.findAthlete(athleteId))
+                .map(Athlete::genetics)
+                .map(RosterQueryService::toProfile);
+    }
+
+    private static GeneticProfile toProfile(Genetics g) {
+        return new GeneticProfile(g.baseRecoveryRate(), g.trainingResponseSensitivity(), g.fiberTypeProfile());
     }
 }

@@ -1,9 +1,11 @@
 package dev.ryanfoerster.atlas.athletics.domain.model;
 
 import dev.ryanfoerster.atlas.shared.domain.AthleteId;
+import dev.ryanfoerster.atlas.shared.domain.MuscleGroup;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -14,8 +16,11 @@ class ConditionSnapshotTest {
     private final AthleteId athleteId = AthleteId.generate();
 
     @Test
-    void capture_records_the_state_dated_at_its_last_update_and_keeps_performance_raw() {
-        FitnessFatigueState state = new FitnessFatigueState(12.0, 3.0, T0);
+    void capture_records_the_aggregated_state_dated_at_its_last_update_and_keeps_performance_raw() {
+        // Deux muscles : Σfitness = 8+4 = 12, Σfatigue = 2+1 = 3 (le snapshot est agrégé, arbitrage ④).
+        FitnessFatigueState state = new FitnessFatigueState(Map.of(
+                MuscleGroup.QUADS, new MuscleCondition(8.0, 2.0),
+                MuscleGroup.CHEST, new MuscleCondition(4.0, 1.0)), T0);
 
         ConditionSnapshot snapshot = ConditionSnapshot.capture(athleteId, state, -5.0);
 

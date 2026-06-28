@@ -1,9 +1,14 @@
 package dev.ryanfoerster.atlas.athletics.domain.service;
 
 import dev.ryanfoerster.atlas.athletics.domain.model.FitnessFatigueState;
+import dev.ryanfoerster.atlas.athletics.domain.model.GeneticModifiers;
+import dev.ryanfoerster.atlas.athletics.domain.model.MuscleCondition;
 import dev.ryanfoerster.atlas.athletics.domain.model.TrainingStimulus;
+import dev.ryanfoerster.atlas.shared.domain.MuscleGroup;
 
 import java.time.Instant;
+import java.util.EnumMap;
+import java.util.Map;
 
 /**
  * Modèle Fitness-Fatigue de Banister (impulse-response), formulation <strong>récursive discrète</strong>.
@@ -56,34 +61,55 @@ public final class BanisterModel {
     private static final double SECONDS_PER_DAY = 86_400.0;
 
     /**
-     * Projette l'état jusqu'à {@code at} par décroissance exponentielle pure (sans nouveau stimulus).
-     * C'est le calcul du lazy compute : l'état à l'affichage = décroissance depuis {@code lastUpdated}.
+     * Projette l'état jusqu'à {@code at} par décroissance exponentielle pure (sans nouveau stimulus),
+     * <strong>muscle par muscle</strong> (sprint 5). Les muscles sont indépendants ; ils partagent les
+     * mêmes constantes de temps (la modulation génétique de τ est la Couche 3). C'est le calcul du lazy
+     * compute : l'état à l'affichage = décroissance depuis {@code lastUpdated}.
      *
      * @throws IllegalArgumentException si {@code at} est antérieur à {@code state.lastUpdated()} (le temps
      *                                  ne recule pas).
      */
-    public FitnessFatigueState decayedTo(FitnessFatigueState state, Instant at) {
+    public FitnessFatigueState decayedTo(FitnessFatigueState state, GeneticModifiers modifiers, Instant at) {
         double days = elapsedDays(state.lastUpdated(), at);
-        double fitness = state.fitness() * Math.exp(-days / TAU_FITNESS_DAYS);
-        double fatigue = state.fatigue() * Math.exp(-days / TAU_FATIGUE_DAYS);
-        return new FitnessFatigueState(fitness, fatigue, at);
+        double fitnessFactor = Math.exp(-days / TAU_FITNESS_DAYS);
+        // τ_fatigue_eff = τ_fatigue / recoveryRate (récupère vite ⇒ fatigue décroît plus vite).
+        double fatigueFactor = Math.exp(-days * modifiers.recoveryRate() / TAU_FATIGUE_DAYS);
+        Map<MuscleGroup, MuscleCondition> decayed = new EnumMap<>(MuscleGroup.class);
+        state.byMuscle().forEach((muscle, condition) -> decayed.put(muscle,
+                new MuscleCondition(condition.fitness() * fitnessFactor, condition.fatigue() * fatigueFactor)));
+        return new FitnessFatigueState(decayed, at);
     }
 
     /**
-     * Applique un stimulus à l'instant {@code at} : on décroît d'abord l'état jusqu'à {@code at}, puis on
-     * ajoute la même magnitude à la fitness ET à la fatigue (arbitrage : asymétrie en sortie uniquement).
+     * Applique un stimulus <strong>distribué par muscle</strong> à l'instant {@code at} : on décroît d'abord
+     * tout l'état jusqu'à {@code at}, puis on ajoute la magnitude de chaque muscle (×{@code stimulusMultiplier}
+     * génétique) à sa fitness ET à sa fatigue (arbitrage : asymétrie en sortie uniquement). Un muscle absent
+     * de l'état mais présent dans la distribution est créé depuis zéro.
      */
-    public FitnessFatigueState applyStimulus(FitnessFatigueState state, TrainingStimulus stimulus, Instant at) {
-        FitnessFatigueState decayed = decayedTo(state, at);
-        return new FitnessFatigueState(
-                decayed.fitness() + stimulus.magnitude(),
-                decayed.fatigue() + stimulus.magnitude(),
-                at);
+    public FitnessFatigueState applyStimulus(FitnessFatigueState state,
+                                             Map<MuscleGroup, TrainingStimulus> distributed,
+                                             GeneticModifiers modifiers, Instant at) {
+        Map<MuscleGroup, MuscleCondition> result = new EnumMap<>(MuscleGroup.class);
+        result.putAll(decayedTo(state, modifiers, at).byMuscle()); // EnumMap(Map) lèverait si la source est vide
+        distributed.forEach((muscle, stimulus) -> {
+            double impulse = stimulus.magnitude() * modifiers.stimulusMultiplier();
+            MuscleCondition base = result.getOrDefault(muscle, MuscleCondition.ZERO);
+            result.put(muscle, new MuscleCondition(base.fitness() + impulse, base.fatigue() + impulse));
+        });
+        return new FitnessFatigueState(result, at);
     }
 
-    /** Performance disponible = k1·fitness − k2·fatigue. Peut être négative juste après une grosse séance. */
+    /**
+     * Performance disponible <strong>agrégée</strong> = k1·Σfitness − k2·Σfatigue (arbitrage ② : somme des
+     * muscles). Peut être négative juste après une grosse séance (« cuit »).
+     */
     public double availablePerformance(FitnessFatigueState state) {
-        return K1 * state.fitness() - K2 * state.fatigue();
+        return K1 * state.totalFitness() - K2 * state.totalFatigue();
+    }
+
+    /** Performance disponible d'<strong>un</strong> muscle = k1·fitness − k2·fatigue (utile à l'analyse par muscle). */
+    public double availablePerformance(MuscleCondition condition) {
+        return K1 * condition.fitness() - K2 * condition.fatigue();
     }
 
     private static double elapsedDays(Instant from, Instant to) {

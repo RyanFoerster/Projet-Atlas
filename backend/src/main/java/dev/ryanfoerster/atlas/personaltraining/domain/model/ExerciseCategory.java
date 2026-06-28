@@ -1,5 +1,6 @@
 package dev.ryanfoerster.atlas.personaltraining.domain.model;
 
+import dev.ryanfoerster.atlas.shared.domain.BodyRegion;
 import dev.ryanfoerster.atlas.shared.domain.MovementPattern;
 
 import java.util.Objects;

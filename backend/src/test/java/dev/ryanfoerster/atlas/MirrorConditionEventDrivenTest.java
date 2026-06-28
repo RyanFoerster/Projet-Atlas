@@ -4,13 +4,13 @@ import dev.ryanfoerster.atlas.athletics.domain.model.AthleteCondition;
 import dev.ryanfoerster.atlas.athletics.domain.model.ConditionSnapshot;
 import dev.ryanfoerster.atlas.athletics.domain.port.AthleteConditionRepository;
 import dev.ryanfoerster.atlas.athletics.domain.port.ConditionSnapshotRepository;
+import dev.ryanfoerster.atlas.athletics.domain.service.StimulusCalculator;
 import dev.ryanfoerster.atlas.identity.domain.model.DisplayName;
 import dev.ryanfoerster.atlas.identity.domain.model.Email;
 import dev.ryanfoerster.atlas.identity.domain.model.User;
 import dev.ryanfoerster.atlas.identity.domain.port.UserRepository;
 import dev.ryanfoerster.atlas.personaltraining.application.command.LogWorkoutCommand;
 import dev.ryanfoerster.atlas.personaltraining.application.command.LogWorkoutUseCase;
-import dev.ryanfoerster.atlas.personaltraining.domain.model.BodyRegion;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseCategory;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseName;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseSet;
@@ -26,6 +26,7 @@ import dev.ryanfoerster.atlas.roster.domain.port.RosterRepository;
 import dev.ryanfoerster.atlas.roster.domain.service.AthleteGenerator;
 import dev.ryanfoerster.atlas.roster.domain.service.ProceduralAthleteGenerator;
 import dev.ryanfoerster.atlas.shared.domain.AthleteId;
+import dev.ryanfoerster.atlas.shared.domain.BodyRegion;
 import dev.ryanfoerster.atlas.shared.domain.MovementPattern;
 import dev.ryanfoerster.atlas.shared.domain.OneRepMax;
 import dev.ryanfoerster.atlas.shared.domain.UserId;
@@ -59,8 +60,9 @@ class MirrorConditionEventDrivenTest extends AbstractIntegrationTest {
     private static final Instant NOW = Instant.parse("2026-06-24T12:00:00Z");
     private static final Instant PERFORMED_AT = Instant.parse("2026-06-23T18:00:00Z");
     private static final AthleteGenerator GENERATOR = new ProceduralAthleteGenerator();
-    // squat 5×1 @ RPE 8 (effort 0.8 → 4.0) + curl 12×1 sans RPE (effort 0.7 → 8.4) = raw 12.4.
-    private static final double EXPECTED_STIMULUS = 0.01 * 12.4;
+    // squat 5×1 @ RPE 8 + curl 12×1 sans RPE (effort neutre), magnitude dérivée de la formule (GATE 2).
+    private static final double EXPECTED_STIMULUS = StimulusCalculator.NORMALIZATION
+            * (5 * StimulusCalculator.effortFactor(8.0) + 12 * StimulusCalculator.effortFactor(null));
 
     @Autowired
     private LogWorkoutUseCase logWorkout;
@@ -85,9 +87,20 @@ class MirrorConditionEventDrivenTest extends AbstractIntegrationTest {
                     // La forme du miroir a évolué : même impulsion sur fitness ET fatigue (décroissance nulle
                     // à l'instant de la séance) → fitness == fatigue == stimulus.
                     assertThat(condition).isNotNull();
-                    assertThat(condition.state().fitness()).isCloseTo(EXPECTED_STIMULUS, within(1e-9));
-                    assertThat(condition.state().fatigue()).isCloseTo(EXPECTED_STIMULUS, within(1e-9));
+                    // Agrégat = somme des muscles travaillés (squat → quads, curl → biceps), modulé par la
+                    // génétique. La séance est fraîche (décroissance nulle) → fitness == fatigue.
+                    assertThat(condition.state().totalFitness()).isEqualTo(condition.state().totalFatigue());
                     assertThat(condition.state().lastUpdated()).isEqualTo(PERFORMED_AT);
+                    // INDIVIDUALISATION GÉNÉTIQUE (Couche 3) : les modifiers dénormalisés viennent bien de la
+                    // Genetics réelle du miroir (résolus via le port Roster à la création de la condition).
+                    Athlete m = mirror(owner);
+                    assertThat(condition.geneticModifiers().recoveryRate())
+                            .isEqualTo(m.genetics().baseRecoveryRate());
+                    assertThat(condition.geneticModifiers().stimulusMultiplier())
+                            .isEqualTo(m.genetics().trainingResponseSensitivity());
+                    // L'impulsion reflète le multiplicateur génétique sur le stimulus de base.
+                    assertThat(condition.state().totalFitness())
+                            .isCloseTo(EXPECTED_STIMULUS * m.genetics().trainingResponseSensitivity(), within(1e-9));
                 });
 
         // Un snapshot a été capturé (futur sprint 7), daté de la séance, performance « cuite » (négative).

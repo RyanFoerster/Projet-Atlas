@@ -4,6 +4,7 @@ import dev.ryanfoerster.atlas.roster.domain.model.Roster;
 import dev.ryanfoerster.atlas.roster.domain.model.RosterId;
 import dev.ryanfoerster.atlas.roster.domain.port.RosterRepository;
 import dev.ryanfoerster.atlas.roster.infrastructure.persistence.mapper.RosterMapper;
+import dev.ryanfoerster.atlas.shared.domain.AthleteId;
 import dev.ryanfoerster.atlas.shared.domain.UserId;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,5 +45,11 @@ public class RosterPersistenceAdapter implements RosterRepository {
     @Transactional(readOnly = true)
     public Optional<Roster> findByOwnerId(UserId ownerId) {
         return jpaRepository.findByOwnerId(ownerId.value()).map(mapper::toDomain);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Roster> findByAthleteId(AthleteId athleteId) {
+        return jpaRepository.findByAthleteId(athleteId.value()).map(mapper::toDomain);
     }
 }

@@ -1,16 +1,19 @@
 package dev.ryanfoerster.atlas.athletics.application.query;
 
 import dev.ryanfoerster.atlas.athletics.domain.model.AthleteCondition;
+import dev.ryanfoerster.atlas.athletics.domain.model.GeneticModifiers;
 import dev.ryanfoerster.atlas.athletics.domain.model.TrainingStimulus;
 import dev.ryanfoerster.atlas.athletics.domain.port.AthleteConditionRepository;
 import dev.ryanfoerster.atlas.athletics.domain.service.BanisterModel;
 import dev.ryanfoerster.atlas.shared.domain.AthleteId;
+import dev.ryanfoerster.atlas.shared.domain.MuscleGroup;
 import org.junit.jupiter.api.Test;
 
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -51,8 +54,8 @@ class GetAthleteConditionUseCaseTest {
 
     @Test
     void resting_decays_fitness_and_fatigue_and_improves_available_performance() {
-        AthleteCondition trained = AthleteCondition.initial(id, T0)
-                .applyStimulus(model, new TrainingStimulus(20.0), T0); // fitness = fatigue = 20 au repos 0
+        AthleteCondition trained = AthleteCondition.initial(id, GeneticModifiers.NEUTRAL, T0)
+                .applyStimulus(model, Map.of(MuscleGroup.QUADS, new TrainingStimulus(20.0)), T0); // f = fat = 20
 
         var immediate = useCaseAt(trained, T0).forAthlete(id);
         var aWeekLater = useCaseAt(trained, T0.plus(Duration.ofDays(7))).forAthlete(id);
@@ -70,8 +73,8 @@ class GetAthleteConditionUseCaseTest {
     @Test
     void a_future_dated_state_is_not_decayed_backwards() {
         Instant future = T0.plus(Duration.ofDays(10));
-        AthleteCondition futureState = AthleteCondition.initial(id, future)
-                .applyStimulus(model, new TrainingStimulus(15.0), future);
+        AthleteCondition futureState = AthleteCondition.initial(id, GeneticModifiers.NEUTRAL, future)
+                .applyStimulus(model, Map.of(MuscleGroup.QUADS, new TrainingStimulus(15.0)), future);
 
         // now (T0) est antérieur au lastUpdated → on ne décroît pas « vers le passé », pas d'exception.
         var current = useCaseAt(futureState, T0).forAthlete(id);

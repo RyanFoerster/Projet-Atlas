@@ -4,7 +4,10 @@ import dev.ryanfoerster.atlas.AbstractIntegrationTest;
 import dev.ryanfoerster.atlas.athletics.domain.model.AthleteCondition;
 import dev.ryanfoerster.atlas.athletics.domain.model.ConditionSnapshot;
 import dev.ryanfoerster.atlas.athletics.domain.model.FitnessFatigueState;
+import dev.ryanfoerster.atlas.athletics.domain.model.GeneticModifiers;
+import dev.ryanfoerster.atlas.athletics.domain.model.MuscleCondition;
 import dev.ryanfoerster.atlas.athletics.domain.model.TrainingStimulus;
+import dev.ryanfoerster.atlas.shared.domain.MuscleGroup;
 import dev.ryanfoerster.atlas.athletics.domain.port.AthleteConditionRepository;
 import dev.ryanfoerster.atlas.athletics.domain.port.ConditionSnapshotRepository;
 import dev.ryanfoerster.atlas.athletics.domain.service.BanisterModel;
@@ -57,16 +60,23 @@ class AthleteConditionPersistenceAdapterIntegrationTest extends AbstractIntegrat
     @Test
     void persists_and_reloads_a_condition_exactly() {
         AthleteId athleteId = createMirrorAthlete();
-        AthleteCondition condition = AthleteCondition.initial(athleteId, T0)
-                .applyStimulus(new BanisterModel(), new TrainingStimulus(7.5), T0);
+        GeneticModifiers modifiers = new GeneticModifiers(1.1, 0.9); // non-neutres : on vérifie leur round-trip
+        AthleteCondition condition = AthleteCondition.initial(athleteId, modifiers, T0)
+                .applyStimulus(new BanisterModel(), Map.of(
+                        MuscleGroup.QUADS, new TrainingStimulus(7.5),
+                        MuscleGroup.CHEST, new TrainingStimulus(2.0)), T0);
 
         conditionRepository.save(condition);
         AthleteCondition reloaded = conditionRepository.findByAthleteId(athleteId).orElseThrow();
 
         assertThat(reloaded).isEqualTo(condition); // égalité par identité
-        assertThat(reloaded.state().fitness()).isEqualTo(7.5);
-        assertThat(reloaded.state().fatigue()).isEqualTo(7.5);
+        // Round-trip JSONB exact muscle par muscle (magnitude × stimulusMultiplier 0.9).
+        assertThat(reloaded.state().condition(MuscleGroup.QUADS)).isEqualTo(new MuscleCondition(7.5 * 0.9, 7.5 * 0.9));
+        assertThat(reloaded.state().condition(MuscleGroup.CHEST)).isEqualTo(new MuscleCondition(2.0 * 0.9, 2.0 * 0.9));
+        assertThat(reloaded.state().byMuscle()).containsOnlyKeys(MuscleGroup.QUADS, MuscleGroup.CHEST);
         assertThat(reloaded.state().lastUpdated()).isEqualTo(T0);
+        // Modificateurs génétiques dénormalisés : round-trip exact.
+        assertThat(reloaded.geneticModifiers()).isEqualTo(modifiers);
     }
 
     @Test
@@ -74,17 +84,21 @@ class AthleteConditionPersistenceAdapterIntegrationTest extends AbstractIntegrat
         AthleteId athleteId = createMirrorAthlete();
         // Sauvés dans le désordre ; doivent ressortir triés par takenAt ASC (ordre des courbes).
         snapshotRepository.save(ConditionSnapshot.capture(athleteId,
-                new FitnessFatigueState(5.0, 1.0, T0.plus(Duration.ofDays(2))), 3.0));
+                singleMuscle(5.0, 1.0, T0.plus(Duration.ofDays(2))), 3.0));
         snapshotRepository.save(ConditionSnapshot.capture(athleteId,
-                new FitnessFatigueState(2.0, 2.0, T0), -2.0));
+                singleMuscle(2.0, 2.0, T0), -2.0));
         snapshotRepository.save(ConditionSnapshot.capture(athleteId,
-                new FitnessFatigueState(4.0, 1.5, T0.plus(Duration.ofDays(1))), 1.0));
+                singleMuscle(4.0, 1.5, T0.plus(Duration.ofDays(1))), 1.0));
 
         List<ConditionSnapshot> ordered = snapshotRepository.findByAthleteId(athleteId);
 
         assertThat(ordered).extracting(ConditionSnapshot::takenAt).containsExactly(
                 T0, T0.plus(Duration.ofDays(1)), T0.plus(Duration.ofDays(2)));
         assertThat(ordered.getFirst().performance()).isEqualTo(-2.0); // négatif conservé
+    }
+
+    private static FitnessFatigueState singleMuscle(double fitness, double fatigue, Instant at) {
+        return new FitnessFatigueState(Map.of(MuscleGroup.QUADS, new MuscleCondition(fitness, fatigue)), at);
     }
 
     private AthleteId createMirrorAthlete() {

@@ -21,4 +21,12 @@ public interface RosterQueryPort {
 
     /** L'athlète miroir du Player, s'il en a créé un. {@link Optional#empty()} sinon. */
     Optional<AthleteId> findMirrorAthleteId(UserId owner);
+
+    /**
+     * Le profil génétique d'un athlète (clé {@link AthleteId}), pour individualiser son modèle d'adaptation
+     * (sprint 5, ADR-031). {@link Optional#empty()} si l'athlète n'existe pas. La {@code Genetics} étant
+     * <strong>immutable</strong>, Athletics le résout une seule fois (à la création de la condition) et
+     * dénormalise les modificateurs dérivés — pas d'appel à chaque séance.
+     */
+    Optional<GeneticProfile> findGeneticProfile(AthleteId athleteId);
 }

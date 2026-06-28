@@ -2,21 +2,28 @@ package dev.ryanfoerster.atlas.athletics.application.eventhandler;
 
 import dev.ryanfoerster.atlas.athletics.domain.model.AthleteCondition;
 import dev.ryanfoerster.atlas.athletics.domain.model.ConditionSnapshot;
+import dev.ryanfoerster.atlas.athletics.domain.model.ExerciseStimulus;
+import dev.ryanfoerster.atlas.athletics.domain.model.GeneticModifiers;
 import dev.ryanfoerster.atlas.athletics.domain.model.SetEffort;
 import dev.ryanfoerster.atlas.athletics.domain.model.TrainingStimulus;
 import dev.ryanfoerster.atlas.athletics.domain.port.AthleteConditionRepository;
 import dev.ryanfoerster.atlas.athletics.domain.port.ConditionSnapshotRepository;
 import dev.ryanfoerster.atlas.athletics.domain.service.BanisterModel;
+import dev.ryanfoerster.atlas.athletics.domain.service.MuscleStimulusMapping;
 import dev.ryanfoerster.atlas.athletics.domain.service.StimulusCalculator;
+import dev.ryanfoerster.atlas.personaltraining.api.events.LoggedExerciseSnapshot;
 import dev.ryanfoerster.atlas.personaltraining.api.events.WorkoutLogged;
 import dev.ryanfoerster.atlas.roster.api.RosterQueryPort;
 import dev.ryanfoerster.atlas.shared.domain.AthleteId;
+import dev.ryanfoerster.atlas.shared.domain.BodyRegion;
+import dev.ryanfoerster.atlas.shared.domain.MuscleGroup;
 import dev.ryanfoerster.atlas.shared.domain.UserId;
 import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -45,17 +52,20 @@ public class WorkoutStimulusHandler {
     private final ConditionSnapshotRepository snapshotRepository;
     private final BanisterModel banisterModel;
     private final StimulusCalculator stimulusCalculator;
+    private final MuscleStimulusMapping muscleStimulusMapping;
 
     public WorkoutStimulusHandler(RosterQueryPort rosterQueryPort,
                                 AthleteConditionRepository conditionRepository,
                                 ConditionSnapshotRepository snapshotRepository,
                                 BanisterModel banisterModel,
-                                StimulusCalculator stimulusCalculator) {
+                                StimulusCalculator stimulusCalculator,
+                                MuscleStimulusMapping muscleStimulusMapping) {
         this.rosterQueryPort = rosterQueryPort;
         this.conditionRepository = conditionRepository;
         this.snapshotRepository = snapshotRepository;
         this.banisterModel = banisterModel;
         this.stimulusCalculator = stimulusCalculator;
+        this.muscleStimulusMapping = muscleStimulusMapping;
     }
 
     @ApplicationModuleListener
@@ -72,9 +82,13 @@ public class WorkoutStimulusHandler {
             return; // rejeu idempotent, ou séance arrivée dans le désordre → no-op
         }
 
-        TrainingStimulus stimulus = stimulusCalculator.from(setEfforts(event));
-        AthleteCondition base = existing.orElseGet(() -> AthleteCondition.initial(athleteId, performedAt));
-        AthleteCondition updated = base.applyStimulus(banisterModel, stimulus, performedAt);
+        Map<MuscleGroup, TrainingStimulus> distributed =
+                stimulusCalculator.distribute(exerciseStimuli(event), muscleStimulusMapping);
+        // Génétique résolue UNE SEULE FOIS, à la création de la condition (Genetics immutable → dénormalisée).
+        // Les séances suivantes réutilisent les modifiers stockés ; pas d'appel Roster superflu (ADR-031).
+        AthleteCondition base = existing.orElseGet(() ->
+                AthleteCondition.initial(athleteId, resolveGeneticModifiers(athleteId), performedAt));
+        AthleteCondition updated = base.applyStimulus(banisterModel, distributed, performedAt);
         conditionRepository.save(updated);
 
         double performance = banisterModel.availablePerformance(updated.state());
@@ -82,15 +96,35 @@ public class WorkoutStimulusHandler {
     }
 
     /**
-     * Aplatit la séance en séries pour le calcul de stimulus : seules {@code reps} et {@code rpe} comptent
-     * au sprint 4 (volume × effort, charge absolue hors-scope — ADR-028). La catégorie/le pattern de
-     * l'exercice ne servent pas au stimulus <em>global</em> (ils serviront à la distribution par muscle au
-     * sprint 5).
+     * Traduit chaque exercice loggé en {@link ExerciseStimulus} domaine : sa <em>cible</em> (pattern composé
+     * ou région accessoire) et ses séries (reps × rpe). Le {@link StimulusCalculator} en déduit la magnitude
+     * et la distribue sur les muscles via le {@link MuscleStimulusMapping}. La charge absolue reste
+     * hors-scope (sprint 6, ADR-028).
      */
-    private static List<SetEffort> setEfforts(WorkoutLogged event) {
-        return event.exercises().stream()
-                .flatMap(exercise -> exercise.sets().stream())
+    /**
+     * Résout les {@link GeneticModifiers} de l'athlète via le port Roster (mapping {@code Genetics →}
+     * paramètres Banister, ADR-031). Athlète sans profil (cas théorique) → {@link GeneticModifiers#NEUTRAL}.
+     * Appelé seulement à la création de la condition (cf. {@code orElseGet}).
+     */
+    private GeneticModifiers resolveGeneticModifiers(AthleteId athleteId) {
+        return rosterQueryPort.findGeneticProfile(athleteId)
+                .map(profile -> new GeneticModifiers(profile.baseRecoveryRate(), profile.trainingResponseSensitivity()))
+                .orElse(GeneticModifiers.NEUTRAL);
+    }
+
+    private static List<ExerciseStimulus> exerciseStimuli(WorkoutLogged event) {
+        return event.exercises().stream().map(WorkoutStimulusHandler::toExerciseStimulus).toList();
+    }
+
+    private static ExerciseStimulus toExerciseStimulus(LoggedExerciseSnapshot exercise) {
+        List<SetEffort> sets = exercise.sets().stream()
                 .map(set -> new SetEffort(set.reps(), set.rpe()))
                 .toList();
+        // Frontière anti-corruption : l'event porte le nom de région en String (ADR-024, types primitifs) ;
+        // Athletics le résout en BodyRegion (shared) pour son mapping typé. Le nom vient toujours de
+        // BodyRegion.name() côté producteur → valueOf est sûr.
+        return exercise.pattern() != null
+                ? ExerciseStimulus.compound(exercise.pattern(), sets)
+                : ExerciseStimulus.accessory(BodyRegion.valueOf(exercise.accessoryRegion()), sets);
     }
 }

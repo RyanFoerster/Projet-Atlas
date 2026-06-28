@@ -2,6 +2,7 @@ package dev.ryanfoerster.atlas.roster.domain.port;
 
 import dev.ryanfoerster.atlas.roster.domain.model.Roster;
 import dev.ryanfoerster.atlas.roster.domain.model.RosterId;
+import dev.ryanfoerster.atlas.shared.domain.AthleteId;
 import dev.ryanfoerster.atlas.shared.domain.UserId;
 
 import java.util.Optional;
@@ -19,4 +20,7 @@ public interface RosterRepository {
 
     /** Le roster d'un Player (au plus un, owner_id unique). */
     Optional<Roster> findByOwnerId(UserId ownerId);
+
+    /** Le roster contenant l'athlète donné (pour résoudre sa génétique par {@link AthleteId}, sprint 5). */
+    Optional<Roster> findByAthleteId(AthleteId athleteId);
 }

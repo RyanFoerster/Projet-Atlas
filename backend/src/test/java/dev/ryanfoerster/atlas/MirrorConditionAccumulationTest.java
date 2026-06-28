@@ -94,7 +94,7 @@ class MirrorConditionAccumulationTest extends AbstractIntegrationTest {
         AthleteCondition condition = conditionRepository.findByAthleteId(mirrorId).orElseThrow();
         // Accumulation correcte : le résidu de la séance 1 (fitness > fatigue après 10j de décroissance)
         // s'ajoute à la séance 2 → fitness STRICTEMENT supérieure à fatigue. Un écrasement donnerait l'égalité.
-        assertThat(condition.state().fitness()).isGreaterThan(condition.state().fatigue());
+        assertThat(condition.state().totalFitness()).isGreaterThan(condition.state().totalFatigue());
     }
 
     @Test
@@ -114,7 +114,7 @@ class MirrorConditionAccumulationTest extends AbstractIntegrationTest {
                         List.of(new ExerciseSet(10, Weight.ofKilograms(80), RPE.of(8.0)))))));
 
         AthleteCondition condition = conditionRepository.findByAthleteId(mirrorId).orElseThrow();
-        assertThat(condition.state().fitness()).isGreaterThan(condition.state().fatigue());
+        assertThat(condition.state().totalFitness()).isGreaterThan(condition.state().totalFatigue());
     }
 
     private void logAndAwait(UserId owner, AthleteId mirrorId, LogWorkoutCommand command) {

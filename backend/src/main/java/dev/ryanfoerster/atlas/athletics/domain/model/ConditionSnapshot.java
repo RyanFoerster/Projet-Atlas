@@ -35,10 +35,12 @@ public record ConditionSnapshot(
 
     /**
      * Capture l'état courant d'une condition comme snapshot daté ({@code takenAt = state.lastUpdated()}).
-     * La performance disponible est calculée en amont par le {@code BanisterModel}.
+     * <strong>Agrégé</strong> (sprint 5, arbitrage ④) : on stocke la fitness/fatigue <em>sommées</em> sur
+     * les muscles — c'est la tendance globale dont les courbes du sprint 7 ont besoin, pas le détail par
+     * muscle. La performance disponible (agrégée) est calculée en amont par le {@code BanisterModel}.
      */
     public static ConditionSnapshot capture(AthleteId athleteId, FitnessFatigueState state, double performance) {
         return new ConditionSnapshot(ConditionSnapshotId.generate(), athleteId, state.lastUpdated(),
-                state.fitness(), state.fatigue(), performance);
+                state.totalFitness(), state.totalFatigue(), performance);
     }
 }

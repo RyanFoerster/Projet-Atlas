@@ -2,13 +2,13 @@ package dev.ryanfoerster.atlas.personaltraining.application.mapper;
 
 import dev.ryanfoerster.atlas.personaltraining.api.events.LoggedExerciseSnapshot;
 import dev.ryanfoerster.atlas.personaltraining.api.events.WorkoutLogged;
-import dev.ryanfoerster.atlas.personaltraining.domain.model.BodyRegion;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseCategory;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseName;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseSet;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.LoggedExercise;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.RPE;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.WorkoutSession;
+import dev.ryanfoerster.atlas.shared.domain.BodyRegion;
 import dev.ryanfoerster.atlas.shared.domain.MovementPattern;
 import dev.ryanfoerster.atlas.shared.domain.UserId;
 import dev.ryanfoerster.atlas.shared.domain.Weight;

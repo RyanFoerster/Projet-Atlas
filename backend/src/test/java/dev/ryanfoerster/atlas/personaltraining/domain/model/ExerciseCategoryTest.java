@@ -2,6 +2,7 @@ package dev.ryanfoerster.atlas.personaltraining.domain.model;
 
 import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseCategory.Accessory;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseCategory.CompoundForce;
+import dev.ryanfoerster.atlas.shared.domain.BodyRegion;
 import dev.ryanfoerster.atlas.shared.domain.MovementPattern;
 import org.junit.jupiter.api.Test;
 
