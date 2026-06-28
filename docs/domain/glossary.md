@@ -114,19 +114,28 @@ Value object représentant un 1RM. Précise s'il est `MEASURED` (testé en vrai)
 
 ## Modèle Fitness-Fatigue
 
-> **État sprint 4** : modèle de Banister **stat globale** (une paire fitness/fatigue par athlète). Le raffinement par `MuscleGroup`, le mapping pondéré, l'individualisation génétique et la progression des CurrentStats partent au **sprint 5** (ADR-004).
+> **État sprint 5** : modèle de Banister **par groupe musculaire**, distribué par un **mapping pondéré sourcé** et **individualisé par la génétique**. Le sprint 4 avait posé la stat globale. La progression structurelle des CurrentStats part au **sprint 6** (ADR-004).
 
 ### TrainingStimulus
-Value object : l'impulsion qu'une séance inflige à un Athlete. **Sprint 4** : une **magnitude scalaire globale**, calculée par le `StimulusCalculator` (`Σ reps × effort(rpe)`, charge absolue exclue — ADR-028). **Sprint 5** : distribution par `MuscleGroup`. Input du `BanisterModel`.
+Value object : l'impulsion qu'une séance inflige à un muscle. Magnitude scalaire (`Σ reps × effort(rpe)` × `NORM`, charge absolue exclue — ADR-028), **distribuée par `MuscleGroup`** via le `MuscleStimulusMapping` (sprint 5). Input du `BanisterModel`.
 
 ### StimulusCalculator
-Domain service stateless : convertit les séries d'une séance en `TrainingStimulus`. Sprint 4 : `S = NORM × Σ reps × effort(rpe)`, `effort(rpe) = rpe/10`, RPE absent → 0.7 (neutre). Le mapping séance→impulsion de Banister **n'a pas de littérature** → calibration Atlas assumée (ADR-028, `sport-science.md`).
+Domain service stateless : `from(sets)` calcule la magnitude d'un bloc de séries ; `distribute(exercises, mapping)` la répartit sur les muscles (`Map<MuscleGroup, TrainingStimulus>`). `S = NORM × Σ reps × effort(rpe)`, `effort(rpe) = clamp((rpe−4)/6)` (seuil convexe doux, sprint 5, ADR-031), RPE absent → RPE 7 (0.5, neutre), `NORM = 0.013`. Le mapping séance→impulsion **n'a pas de littérature** → calibration Atlas assumée (ADR-028).
+
+### ExerciseStimulus
+Value object d'entrée du calcul : un exercice loggé réduit à sa **cible** (`MovementPattern` composé **ou** `BodyRegion` accessoire) et ses séries. Forme domaine de `LoggedExerciseSnapshot` (le handler traduit le nom de région de l'event en `BodyRegion` à sa frontière).
+
+### MuscleStimulusMapping
+Domain service : distribue le stimulus d'un exercice sur les `MuscleGroup` via des **tables de pondération sourcées** (somme = 1 par exercice — ADR-030). Composés (`MovementPattern → {muscle: poids}`, ex. squat → quads 0.42, glutes 0.30…) et accessoires (`BodyRegion → muscle`, cible directe sauf BACK → upper/lower 80/20, FOREARMS → biceps). Classement sourcé EMG/SBS, nombres = interprétation Atlas assumée.
 
 ### FitnessFatigueState
-Value object immutable de l'état dynamique d'un Athlete à un instant donné. **Sprint 4** : une **paire globale** `(fitness, fatigue)` + `lastUpdated: Instant`. **Sprint 5** : par `MuscleGroup`.
+Value object immutable de l'état dynamique d'un Athlete : une `Map<MuscleGroup, MuscleCondition>` (sparse — muscle jamais travaillé = absent) + **un seul** `lastUpdated: Instant` partagé. Agrégé par **somme** (`totalFitness`/`totalFatigue`) vers l'indice global (sprint 5, ADR-029).
+
+### MuscleCondition
+Value object : la paire `(fitness, fatigue)` d'**un** groupe musculaire (sans horloge — le timestamp vit une fois au niveau du `FitnessFatigueState`). Brique élémentaire de la forme par muscle. Toujours ≥ 0.
 
 ### AthleteCondition
-**Aggregate root du module athletics** (sprint 4) : l'état dynamique d'un athlète, clé par `AthleteId`. Porte un `FitnessFatigueState`, le fait évoluer via le `BanisterModel`. Distinct de l'identité statique (nom, génétique) qui vit dans **Roster** — l'athlète « complet » est une composition à l'affichage (ADR-027).
+**Aggregate root du module athletics** : l'état dynamique d'un athlète, clé par `AthleteId`. Porte le `FitnessFatigueState` (par muscle) **et ses `GeneticModifiers`** (dénormalisés, résolus une fois à la création). Le fait évoluer via le `BanisterModel`. Distinct de l'identité statique (Roster) — composition à l'affichage (ADR-027).
 
 ### Fitness
 Adaptation positive. Monte modérément à chaque stimulus, redescend **lentement** (décroissance exponentielle, `τ_fitness ≈ 42 j`). Court terme (semaines) — distincte de la force structurelle (`CurrentStats`).
@@ -138,10 +147,22 @@ Effet aigu négatif. Monte fortement, redescend **vite** (`τ_fatigue ≈ 7 j`).
 Phénomène **émergent** du modèle : après une séance, la fatigue (τ court) s'efface plus vite que la fitness (τ long) → la performance dépasse le niveau initial. Fondement de la périodisation et du **deload**. Validée par la simulation 12 semaines (GATE 1, sprint 4) — non codée, émergente de la dynamique.
 
 ### Indice de Forme
-Synthèse de présentation 0–100 (50 = neutre) : `50 + 50·(performance/fitness)`, clampé. **Indépendant de l'échelle interne NORM** (le ratio l'annule). États : `Cuit` (<40), `Frais` (40–60), `Affûté` (>60). Affiché par le composant `ConditionGauge` (design system §4.16).
+Synthèse de présentation 0–100 (50 = neutre) : `50 + 50·(Σperf/Σfitness)`, clampé, **agrégé par somme** sur les muscles (sprint 5, ADR-029). **Indépendant de l'échelle interne NORM** (le ratio l'annule). États : `Cuit` (<40), `Frais` (40–60), `Affûté` (>60). Affiché par `ConditionGauge` (design system §4.16).
+
+### Agrégation (somme vs maillon-faible)
+Règle de passage des N `MuscleCondition` à l'indice global unique. Atlas retient la **somme** (robuste, indépendante de NORM, pondérée par le volume). L'alternative « maillon-faible » (indice du muscle le plus cuit) est réservée au **détail par muscle (sprint 7)** : elle ne diverge de la somme que sous **asymétrie temporelle** (muscles entraînés à des moments différents) et sur-pénalise un seul groupe cuit pour la jauge globale (ADR-029).
 
 ### BanisterModel
-Domain service stateless (ex-`FitnessFatigueModel`) : le modèle de Banister en **forme récursive discrète** — `decay` (décroissance exponentielle depuis `lastUpdated`), `applyStimulus` (decay + ajout de l'impulsion à fitness ET fatigue), `availablePerformance` (`k1·fitness − k2·fatigue`). Zéro Spring/JPA, constantes sourcées/assumées (ADR-028).
+Domain service stateless : le modèle de Banister en **forme récursive discrète**, appliqué **par muscle** — `decayedTo(state, modifiers, at)`, `applyStimulus(state, distributed, modifiers, at)` (decay + impulsion par muscle), `availablePerformance` (agrégé `k1·Σfitness − k2·Σfatigue`). La décroissance de la fatigue et la magnitude sont **modulées par les `GeneticModifiers`**. Zéro Spring/JPA, constantes sourcées/assumées (ADR-028).
+
+### GeneticProfile
+Snapshot **api-level** (record `roster.api`, types primitifs) du profil génétique d'un athlète, exposé par Roster à Athletics via `RosterQueryPort.findGeneticProfile(AthleteId)`. Ne fait pas fuiter le VO `Genetics` interne. Porte `baseRecoveryRate`, `trainingResponseSensitivity`, `fiberTypeProfile` (sprint 5, ADR-031).
+
+### GeneticModifiers
+Value object Athletics dérivé du `GeneticProfile`, **dénormalisé dans `AthleteCondition`** (résolu une fois — `Genetics` immutable). `recoveryRate` → module τ_fatigue (`τ_eff = 7/recovery`, **fraîcheur**) ; `stimulusMultiplier` → module la magnitude (**construction**). Le mapping `Genetics → GeneticModifiers` vit dans le handler (application), pas dans le domaine (ADR-031).
+
+### Individualisation paramétrique
+Principe : la `Genetics` (procédurale, immutable) **module les paramètres** du modèle de Banister par athlète, plutôt que de changer le modèle. Deux leviers distincts au sprint 5 (recovery → fatigue, sensitivity → impulsion) ; `fiberTypeProfile` réservé (redondance avec recovery) ; axes structurels (hypertrophie, affinité) réservés au sprint 6. C'est le lien entre génétique procédurale (sprint 2) et simulation Banister.
 
 ### Decay / Lazy compute
 On ne tick jamais les athlètes (pas de scheduler, ADR-006) : l'état stocké `(fitness, fatigue, lastUpdated)` est **décru à la volée** à la lecture/application (`exp(−Δt/τ)`). La forme récursive ne garde que l'état courant + le timestamp — pas de ré-intégration de tout l'historique (convolution continue), trop coûteuse.
@@ -150,10 +171,10 @@ On ne tick jamais les athlètes (pas de scheduler, ADR-006) : l'état stocké `(
 Point daté `(fitness, fatigue, performance)` capturé **à chaque séance appliquée** (append-only). Alimentera les **courbes du sprint 7** (Insights). `performance` peut être négative (athlète « cuit »).
 
 ### CurrentStats
-Value object porté par l'Athlete (module **roster**), capacités **structurelles** long terme : 1RM par MovementPattern (`OneRepMax`). **Sprint 4** : stables — Athletics ne les touche pas, un deload baisse la fitness mais PAS le 1RM (la distinction court/long terme, cœur du sprint). **Sprint 5** : leur progression (montée lente quasi-irréversible) sera pilotée par Athletics.
+Value object porté par l'Athlete (module **roster**), capacités **structurelles** long terme : 1RM par MovementPattern (`OneRepMax`). **Sprints 4–5** : stables — Athletics ne les touche pas, un deload baisse la fitness mais PAS le 1RM (la distinction court/long terme, cœur des sprints 4–5). **Sprint 6** : leur progression (montée lente quasi-irréversible) sera pilotée par Athletics, avec arbitrage d'ownership (elles vivent dans Roster).
 
 ### AdaptationCalculator
-Domain service **prévu sprint 5** : progression long terme des CurrentStats sous stimulus chronique (Genetics, TrainingAge). Pas encore implémenté au sprint 4.
+Domain service **prévu sprint 6** : progression long terme des CurrentStats sous stimulus chronique, pilotée par les axes génétiques **structurels** (hypertrophie, affinité de force). Pas encore implémenté.
 
 ### InterferencePolicy
 Domain policy qui modélise l'interférence aérobie-force (concurrent training effect). Si un cardio long suit un entraînement de force dans une fenêtre courte, les gains de force sont réduits de 20-30%.
