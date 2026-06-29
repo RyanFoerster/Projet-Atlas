@@ -28,6 +28,16 @@ public record LogWorkoutDto(
             List<SetInputDto> sets) {
     }
 
-    public record SetInputDto(int reps, BigDecimal weightKg, Double rpe) {
+    /**
+     * Une série en entrée. {@code loadType} ∈ {@code {BODYWEIGHT, WEIGHTED, EXTERNAL}} (sprint 6, ADR-035) :
+     * <ul>
+     *   <li>{@code BODYWEIGHT} : poids de corps, {@code weightKg} ignoré ;</li>
+     *   <li>{@code WEIGHTED} : lesté, {@code weightKg} = charge ajoutée (requis) ;</li>
+     *   <li>{@code EXTERNAL} : charge externe, {@code weightKg} = charge (requis).</li>
+     * </ul>
+     * {@code loadType} {@code null} = compat client simple : {@code weightKg} {@code null} → poids de corps,
+     * sinon charge externe.
+     */
+    public record SetInputDto(int reps, String loadType, BigDecimal weightKg, Double rpe) {
     }
 }

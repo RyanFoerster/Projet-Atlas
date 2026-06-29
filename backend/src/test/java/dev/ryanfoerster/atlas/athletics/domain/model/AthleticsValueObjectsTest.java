@@ -89,6 +89,14 @@ class AthleticsValueObjectsTest {
     }
 
     @Test
+    void set_effort_rejects_negative_percent_one_rep_max_but_accepts_null() {
+        assertThatThrownBy(() -> new SetEffort(5, 8.0, -0.1))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("1RM");
+        assertThat(new SetEffort(5, 8.0).percentOneRepMax()).isNull(); // 2-arg → pas de référence de charge
+        assertThat(new SetEffort(5, 8.0, 0.85).percentOneRepMax()).isEqualTo(0.85);
+    }
+
+    @Test
     void exercise_stimulus_requires_exactly_one_target() {
         List<SetEffort> sets = List.of(new SetEffort(5, 8.0));
 

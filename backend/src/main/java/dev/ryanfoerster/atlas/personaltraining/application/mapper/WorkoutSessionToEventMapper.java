@@ -6,6 +6,7 @@ import dev.ryanfoerster.atlas.personaltraining.api.events.WorkoutLogged;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseCategory.Accessory;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseCategory.CompoundForce;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseSet;
+import dev.ryanfoerster.atlas.personaltraining.domain.model.Load;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.LoggedExercise;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.WorkoutSession;
 import dev.ryanfoerster.atlas.shared.domain.MovementPattern;
@@ -58,8 +59,20 @@ public final class WorkoutSessionToEventMapper {
     }
 
     private static ExerciseSetSnapshot toSnapshot(ExerciseSet set) {
-        Double weightKg = set.weight() == null ? null : set.weight().toKilograms().doubleValue();
+        String loadType;
+        Double weightKg = null;
+        switch (set.load()) {
+            case Load.Bodyweight ignored -> loadType = ExerciseSetSnapshot.BODYWEIGHT;
+            case Load.Weighted w -> {
+                loadType = ExerciseSetSnapshot.WEIGHTED;
+                weightKg = w.added().toKilograms().doubleValue();
+            }
+            case Load.External e -> {
+                loadType = ExerciseSetSnapshot.EXTERNAL;
+                weightKg = e.weight().toKilograms().doubleValue();
+            }
+        }
         Double rpe = set.rpe() == null ? null : set.rpe().value();
-        return new ExerciseSetSnapshot(set.reps(), weightKg, rpe);
+        return new ExerciseSetSnapshot(set.reps(), loadType, weightKg, rpe);
     }
 }

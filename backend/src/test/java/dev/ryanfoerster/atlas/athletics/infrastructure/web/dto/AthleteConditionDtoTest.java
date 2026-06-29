@@ -2,20 +2,22 @@ package dev.ryanfoerster.atlas.athletics.infrastructure.web.dto;
 
 import dev.ryanfoerster.atlas.athletics.application.query.GetAthleteConditionUseCase.CurrentCondition;
 import dev.ryanfoerster.atlas.shared.domain.AthleteId;
+import dev.ryanfoerster.atlas.shared.domain.MovementPattern;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/** Mapping de présentation : indice de Forme 0–100 (50 = neutre) + état cuit/frais/affûté. */
+/** Mapping de présentation : indice de Forme 0–100 (50 = neutre) + état cuit/frais/affûté + baselines 1RM. */
 class AthleteConditionDtoTest {
 
     private static final Instant NOW = Instant.parse("2026-01-05T18:00:00Z");
     private final AthleteId id = AthleteId.generate();
 
     private CurrentCondition condition(double fitness, double fatigue, double performance) {
-        return new CurrentCondition(id, fitness, fatigue, performance, NOW);
+        return new CurrentCondition(id, fitness, fatigue, performance, NOW, Map.of());
     }
 
     @Test
@@ -51,5 +53,16 @@ class AthleteConditionDtoTest {
 
         assertThat(dto.formIndex()).isEqualTo(50);
         assertThat(dto.formState()).isEqualTo(AthleteConditionDto.FRAIS);
+    }
+
+    @Test
+    void exposes_structural_baselines_by_pattern_name_at_full_precision() {
+        // La baseline (1RM de départ figé) est exposée par nom de pattern, NON arrondie (le front calcule le delta).
+        CurrentCondition condition = new CurrentCondition(id, 5.0, 1.0, 3.0, NOW,
+                Map.of(MovementPattern.SQUAT, 100.0));
+
+        AthleteConditionDto dto = AthleteConditionDto.from(condition);
+
+        assertThat(dto.baselineOneRmKgByPattern()).containsEntry("SQUAT", 100.0);
     }
 }

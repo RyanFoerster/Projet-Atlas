@@ -50,15 +50,8 @@ public final class ProceduralAthleteGenerator implements AthleteGenerator {
      */
     private static final double MIRROR_BOOST_CEILING = 1.20;
 
-    // Ratios 1RM/poids de corps, HOMME adulte, [intermédiaire (début du signal de talent) ; elite
-    // (saturation du boost)]. Sources : ExRx.net Strength Standards + Nuckols/Stronger By Science.
-    private static final double[] SQUAT_MALE = {1.5, 2.3};
-    private static final double[] BENCH_MALE = {1.0, 1.65};
-    private static final double[] DEADLIFT_MALE = {1.75, 2.7};
-    private static final double[] OHP_MALE = {0.6, 1.0};
-    // Ratios féminins vs masculins (ExRx) : ~0.65 sur le haut du corps, ~0.75 sur le bas du corps.
-    private static final double FEMALE_UPPER_FACTOR = 0.65;
-    private static final double FEMALE_LOWER_FACTOR = 0.75;
+    // Les ratios de force (bandes [intermédiaire, élite], genrées) vivent dans StrengthStandards — source
+    // unique partagée avec le calcul du plafond génétique côté query (Couche 3, T3 du sprint 6).
 
     // Pools de noms (procédural ; agrandis librement plus tard).
     private static final String[] FIRST_NAMES = {
@@ -99,25 +92,9 @@ public final class ProceduralAthleteGenerator implements AthleteGenerator {
 
     /** Niveau de talent [0,1] déduit du ratio force/BW, par rapport aux standards du pattern et du genre. */
     private double talentFromRatio(double ratio, MovementPattern pattern, Gender gender) {
-        double[] thresholds = thresholdsFor(pattern, gender);
+        double[] thresholds = StrengthStandards.ratioBand(pattern, gender);
         double t = (ratio - thresholds[0]) / (thresholds[1] - thresholds[0]);
         return clamp(t, 0.0, 1.0);
-    }
-
-    private double[] thresholdsFor(MovementPattern pattern, Gender gender) {
-        double[] base = switch (pattern) {
-            case SQUAT -> SQUAT_MALE;
-            case BENCH_PRESS -> BENCH_MALE;
-            case DEADLIFT -> DEADLIFT_MALE;
-            case OVERHEAD_PRESS -> OHP_MALE;
-            default -> throw new IllegalArgumentException("Pas de standard pour " + pattern);
-        };
-        if (gender == Gender.FEMALE) {
-            double factor = (pattern == MovementPattern.BENCH_PRESS || pattern == MovementPattern.OVERHEAD_PRESS)
-                    ? FEMALE_UPPER_FACTOR : FEMALE_LOWER_FACTOR;
-            return new double[] {base[0] * factor, base[1] * factor};
-        }
-        return base;
     }
 
     // ----- Candidat virtuel (rareté = spécialisation, ADR-020) --------------------------------
@@ -209,7 +186,7 @@ public final class ProceduralAthleteGenerator implements AthleteGenerator {
         double bodyWeightKg = bodyWeight.toKilograms().doubleValue();
         Map<MovementPattern, OneRepMax> result = new EnumMap<>(MovementPattern.class);
         for (MovementPattern pattern : BIG_LIFTS) {
-            double baselineRatio = thresholdsFor(pattern, gender)[0]; // niveau intermédiaire (genré)
+            double baselineRatio = StrengthStandards.intermediateRatio(pattern, gender); // niveau intermédiaire (genré)
             double oneRmKg = roundToNearest(bodyWeightKg * baselineRatio * genetics.strengthAffinity(pattern), 2.5);
             result.put(pattern, OneRepMax.measured(Weight.ofKilograms(oneRmKg)));
         }

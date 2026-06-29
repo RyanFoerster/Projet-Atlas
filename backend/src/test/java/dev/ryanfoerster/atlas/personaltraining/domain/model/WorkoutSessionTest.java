@@ -25,7 +25,7 @@ class WorkoutSessionTest {
     private static LoggedExercise compound(MovementPattern pattern, int sets) {
         List<ExerciseSet> exerciseSets = new ArrayList<>();
         for (int i = 0; i < sets; i++) {
-            exerciseSets.add(new ExerciseSet(5, Weight.ofKilograms(100), RPE.of(8.0)));
+            exerciseSets.add(ExerciseSet.external(5, Weight.ofKilograms(100), RPE.of(8.0)));
         }
         return new LoggedExercise(ExerciseName.of(pattern.name()), ExerciseCategory.compound(pattern), exerciseSets);
     }
@@ -33,7 +33,7 @@ class WorkoutSessionTest {
     private static LoggedExercise accessory(BodyRegion region) {
         return new LoggedExercise(ExerciseName.of(region.name() + " work"),
                 ExerciseCategory.accessory(region),
-                List.of(new ExerciseSet(12, Weight.ofKilograms(20), null)));
+                List.of(ExerciseSet.external(12, Weight.ofKilograms(20), null)));
     }
 
     @Test

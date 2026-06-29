@@ -104,6 +104,25 @@ public final class Athlete {
                 rarity, mirror, recruitedAt, trainingHistory.recordWorkout(performedAt, patternsCovered));
     }
 
+    /**
+     * Matérialise une progression structurelle du 1RM (event {@code CurrentStatsProgressed}, Couche 3). Le
+     * verbe « progress » dit l'invariant : on ne matérialise qu'une <strong>hausse</strong> (cliquet). Une
+     * valeur inférieure ou égale au 1RM courant est un <strong>no-op</strong> (retourne {@code this}) — ce
+     * qui rend l'application <em>idempotente</em> et sûre au rejeu / réordonnancement des events (livraison
+     * at-least-once de Modulith, ADR-023). La distinction CurrentStats / Fitness est ainsi gardée jusqu'au
+     * point de matérialisation : le 1RM ne recule jamais. Orchestré par {@link Roster#progressAthleteStat}.
+     */
+    Athlete progressOneRepMax(MovementPattern pattern, OneRepMax oneRepMax) {
+        boolean notAnIncrease = currentStats.oneRepMax(pattern)
+                .map(current -> oneRepMax.weight().toKilograms().compareTo(current.weight().toKilograms()) <= 0)
+                .orElse(false);
+        if (notAnIncrease) {
+            return this;
+        }
+        return new Athlete(id, rosterId, name, age, bodyWeight, bodyHeight, gender, genetics,
+                currentStats.with(pattern, oneRepMax), rarity, mirror, recruitedAt, trainingHistory);
+    }
+
     public Optional<OneRepMax> currentOneRepMax(MovementPattern pattern) {
         return currentStats.oneRepMax(pattern);
     }

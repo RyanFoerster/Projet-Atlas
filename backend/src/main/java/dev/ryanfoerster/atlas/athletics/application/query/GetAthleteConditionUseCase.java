@@ -2,13 +2,17 @@ package dev.ryanfoerster.atlas.athletics.application.query;
 
 import dev.ryanfoerster.atlas.athletics.domain.model.AthleteCondition;
 import dev.ryanfoerster.atlas.athletics.domain.model.FitnessFatigueState;
+import dev.ryanfoerster.atlas.athletics.domain.model.PatternProgress;
 import dev.ryanfoerster.atlas.athletics.domain.port.AthleteConditionRepository;
 import dev.ryanfoerster.atlas.athletics.domain.service.BanisterModel;
 import dev.ryanfoerster.atlas.shared.domain.AthleteId;
+import dev.ryanfoerster.atlas.shared.domain.MovementPattern;
 import org.springframework.stereotype.Service;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.EnumMap;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -44,12 +48,27 @@ public class GetAthleteConditionUseCase {
                 })
                 .orElseGet(() -> FitnessFatigueState.initial(now));
         double performance = banisterModel.availablePerformance(state);
+        // Baselines de progression structurelle (1RM de départ figé par pattern) — pour le delta cumulé à
+        // l'affichage (Couche 3). Lecture pleine précision : le front calcule courant(roster) − baseline.
+        Map<MovementPattern, Double> baselines = condition
+                .map(c -> toBaselines(c.structural().byPattern()))
+                .orElseGet(Map::of);
         return new CurrentCondition(athleteId, state.totalFitness(), state.totalFatigue(), performance,
-                state.lastUpdated());
+                state.lastUpdated(), baselines);
     }
 
-    /** Condition courante projetée à la lecture. {@code performance} peut être négative (athlète « cuit »). */
+    private static Map<MovementPattern, Double> toBaselines(Map<MovementPattern, PatternProgress> byPattern) {
+        Map<MovementPattern, Double> baselines = new EnumMap<>(MovementPattern.class);
+        byPattern.forEach((pattern, progress) -> baselines.put(pattern, progress.startOneRmKg()));
+        return baselines;
+    }
+
+    /**
+     * Condition courante projetée à la lecture. {@code performance} peut être négative (athlète « cuit »).
+     * {@code baselineOneRmKgByPattern} = le 1RM de départ figé de chaque pattern entré en progression
+     * (vide si jamais entraîné), pour le delta cumulé à l'affichage.
+     */
     public record CurrentCondition(AthleteId athleteId, double fitness, double fatigue, double performance,
-                                   Instant asOf) {
+                                   Instant asOf, Map<MovementPattern, Double> baselineOneRmKgByPattern) {
     }
 }

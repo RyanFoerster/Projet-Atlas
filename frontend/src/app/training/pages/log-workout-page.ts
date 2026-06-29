@@ -151,7 +151,9 @@ export class LogWorkoutPage {
         region: ex.category() === 'ACCESSORY' ? ex.regionKey() : null,
         sets: ex.sets().map((s) => ({
           reps: parseInt(s.reps(), 10) || 0,
-          weightKg: this.floatOrNull(s.weightKg()),
+          loadType: s.loadType(),
+          // Poids de corps pur → pas de valeur ; lesté/externe → la charge saisie.
+          weightKg: s.loadType() === 'BODYWEIGHT' ? null : this.floatOrNull(s.weightKg()),
           rpe: this.floatOrNull(s.rpe()),
         })),
       })),

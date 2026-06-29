@@ -1,5 +1,6 @@
 package dev.ryanfoerster.atlas.personaltraining.application.mapper;
 
+import dev.ryanfoerster.atlas.personaltraining.api.events.ExerciseSetSnapshot;
 import dev.ryanfoerster.atlas.personaltraining.api.events.LoggedExerciseSnapshot;
 import dev.ryanfoerster.atlas.personaltraining.api.events.WorkoutLogged;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseCategory;
@@ -28,10 +29,10 @@ class WorkoutSessionToEventMapperTest {
     void flattens_session_to_event_preserving_values_and_the_sealed_discriminant() {
         LoggedExercise squat = new LoggedExercise(ExerciseName.of("Back Squat"),
                 ExerciseCategory.compound(MovementPattern.SQUAT),
-                List.of(new ExerciseSet(5, Weight.ofKilograms(140), RPE.of(7.5))));
+                List.of(ExerciseSet.external(5, Weight.ofKilograms(140), RPE.of(7.5))));
         LoggedExercise curl = new LoggedExercise(ExerciseName.of("Barbell Curl"),
                 ExerciseCategory.accessory(BodyRegion.BICEPS),
-                List.of(new ExerciseSet(12, null, null))); // poids de corps, pas de RPE
+                List.of(ExerciseSet.bodyweight(12, null))); // poids de corps, pas de RPE
         WorkoutSession session = WorkoutSession.log(owner, NOW.minusSeconds(3600),
                 List.of(squat, curl), 60, null, NOW);
 
@@ -49,6 +50,7 @@ class WorkoutSessionToEventMapperTest {
         assertThat(squatSnap.accessoryRegion()).isNull();
         assertThat(squatSnap.sets()).singleElement().satisfies(s -> {
             assertThat(s.reps()).isEqualTo(5);
+            assertThat(s.loadType()).isEqualTo(ExerciseSetSnapshot.EXTERNAL);
             assertThat(s.weightKg()).isEqualTo(140.0);
             assertThat(s.rpe()).isEqualTo(7.5);
         });
@@ -58,9 +60,28 @@ class WorkoutSessionToEventMapperTest {
         assertThat(curlSnap.pattern()).isNull();
         assertThat(curlSnap.accessoryRegion()).isEqualTo("BICEPS");
         assertThat(curlSnap.sets()).singleElement().satisfies(s -> {
+            assertThat(s.loadType()).isEqualTo(ExerciseSetSnapshot.BODYWEIGHT);
             assertThat(s.weightKg()).isNull(); // poids de corps survit
             assertThat(s.rpe()).isNull();
         });
+    }
+
+    @Test
+    void weighted_set_flattens_to_added_load() {
+        LoggedExercise pullUp = new LoggedExercise(ExerciseName.of("Weighted Pull-up"),
+                ExerciseCategory.compound(MovementPattern.CHIN_UP),
+                List.of(ExerciseSet.weighted(6, Weight.ofKilograms(40), RPE.of(8.0))));
+        WorkoutSession session = WorkoutSession.log(owner, NOW.minusSeconds(3600),
+                List.of(pullUp), null, null, NOW);
+
+        WorkoutLogged event = WorkoutSessionToEventMapper.toEvent(session);
+
+        assertThat(event.exercises()).singleElement().satisfies(ex ->
+                assertThat(ex.sets()).singleElement().satisfies(s -> {
+                    assertThat(s.loadType()).isEqualTo(ExerciseSetSnapshot.WEIGHTED);
+                    assertThat(s.weightKg()).isEqualTo(40.0); // la charge AJOUTÉE, pas la charge totale
+                    assertThat(s.rpe()).isEqualTo(8.0);
+                }));
     }
 
     @Test
@@ -68,7 +89,7 @@ class WorkoutSessionToEventMapperTest {
         WorkoutSession session = WorkoutSession.log(owner, NOW.minusSeconds(3600),
                 List.of(new LoggedExercise(ExerciseName.of("Back Squat"),
                         ExerciseCategory.compound(MovementPattern.SQUAT),
-                        List.of(new ExerciseSet(5, Weight.ofKilograms(100), null)))),
+                        List.of(ExerciseSet.external(5, Weight.ofKilograms(100), null)))),
                 null, null, NOW);
 
         assertThat(WorkoutSessionToEventMapper.toEvent(session).durationMinutes()).isNull();

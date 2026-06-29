@@ -52,8 +52,8 @@ const NAME_INPUT =
         </div>
       </div>
 
-      <div class="grid grid-cols-[64px_1fr_64px_28px] gap-2.5 px-0.5 mb-1.5 font-sans text-[0.625rem] uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
-        <span>Reps</span><span>Poids</span><span>RPE</span><span></span>
+      <div class="grid grid-cols-[56px_140px_1fr_56px_28px] gap-2.5 px-0.5 mb-1.5 font-sans text-[0.625rem] uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
+        <span>Reps</span><span>Charge</span><span>Poids</span><span>RPE</span><span></span>
       </div>
       <div class="flex flex-col gap-2">
         @for (s of exercise().sets(); track s) {
@@ -95,7 +95,8 @@ export class AtlasExerciseLogRow {
   protected addSet(): void {
     const sets = this.exercise().sets();
     const last = sets[sets.length - 1];
-    this.exercise().sets.set([...sets, newSet(last, true)]); // duplique reps/poids, RPE vidé, focus
+    // Héritage : la nouvelle série reprend type de charge / poids de la précédente (RPE vidé, focus).
+    this.exercise().sets.set([...sets, newSet(last, true)]);
   }
 
   protected removeSet(target: SetForm): void {

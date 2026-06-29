@@ -124,10 +124,10 @@ class WorkoutLoggedEventDrivenTest extends AbstractIntegrationTest {
     private static LogWorkoutCommand command(Instant performedAt) {
         LoggedExercise squat = new LoggedExercise(ExerciseName.of("Back Squat"),
                 ExerciseCategory.compound(MovementPattern.SQUAT),
-                List.of(new ExerciseSet(5, Weight.ofKilograms(140), RPE.of(8.0))));
+                List.of(ExerciseSet.external(5, Weight.ofKilograms(140), RPE.of(8.0))));
         LoggedExercise curl = new LoggedExercise(ExerciseName.of("Barbell Curl"),
                 ExerciseCategory.accessory(BodyRegion.BICEPS),
-                List.of(new ExerciseSet(12, Weight.ofKilograms(20), null)));
+                List.of(ExerciseSet.external(12, Weight.ofKilograms(20), null)));
         return new LogWorkoutCommand(performedAt, 60, null, List.of(squat, curl));
     }
 

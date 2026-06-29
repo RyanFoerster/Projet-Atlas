@@ -43,11 +43,21 @@ import { AtlasConditionGauge } from '../../ui/atlas-condition-gauge';
         </p>
 
         @if (lifts().length) {
+          <div class="mb-3 font-sans text-caption uppercase tracking-[0.08em] text-[var(--text-tertiary)]">Force · 1RM</div>
           <div class="grid gap-3 mb-8 [grid-template-columns:repeat(auto-fit,minmax(130px,1fr))]">
             @for (lift of lifts(); track lift.key) {
               <div class="rounded-xl bg-[var(--surface-base)] border border-[var(--border-subtle)] p-4">
                 <div class="mb-2 font-sans text-caption uppercase tracking-[0.08em] text-[var(--text-tertiary)]">{{ lift.label }}</div>
-                <div class="font-mono text-data-lg text-[var(--text-primary)]">{{ lift.value }}<span class="text-[1.05rem] text-[var(--text-tertiary)]">kg</span></div>
+                <!-- Chiffre principal = jalon entier (un lifter dit « 103 kg », pas « 103,4 ») ; la précision
+                     reste pleine en stockage (le delta la révèle). -->
+                <div class="font-mono tabular-nums text-data-lg text-[var(--text-primary)]">{{ lift.value }}<span class="text-[1.05rem] text-[var(--text-tertiary)]">kg</span></div>
+                @if (lift.gained; as gained) {
+                  <!-- Delta cumulé depuis le départ (Couche 3, §4.5) : rend la progression lente VISIBLE
+                       dès la 1ʳᵉ séance, à 1 décimale. Toujours positif (cliquet). -->
+                  <div class="mt-2 flex items-center gap-1 font-mono tabular-nums text-data text-[var(--success)]">
+                    <atlas-icon name="trending-up" [size]="16" />+{{ gained }}<span class="text-[var(--text-tertiary)]">&nbsp;kg</span>
+                  </div>
+                }
               </div>
             }
           </div>
@@ -108,10 +118,27 @@ export class AthleteDetailPage implements OnInit {
   protected readonly lifts = computed(() => {
     const a = this.athlete();
     if (!a) return [];
+    // Baselines (1RM de départ figé) du read Athletics — présentes seulement pour un miroir entraîné.
+    const baselines = this.condition()?.baselineOneRmKgByPattern ?? {};
     return MOVEMENT_ORDER
       .filter((k) => a.oneRepMaxesKg[k] != null)
-      .map((key) => ({ key, label: MOVEMENT_LABELS[key], value: a.oneRepMaxesKg[key] }));
+      .map((key) => {
+        const current = a.oneRepMaxesKg[key];
+        const baseline = baselines[key];
+        const gain = baseline != null ? current - baseline : 0;
+        return {
+          key,
+          label: MOVEMENT_LABELS[key],
+          value: Math.round(current),                              // jalon entier (précision gardée en base)
+          gained: gain >= 0.05 ? this.formatGain(gain) : null,     // delta cumulé 1 décimale, masqué si ~0
+        };
+      });
   });
+
+  /** Delta cumulé formaté : 1 décimale, virgule (voix FR du design system). Ex. 3.0122 → "3,0". */
+  private formatGain(gain: number): string {
+    return gain.toFixed(1).replace('.', ',');
+  }
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');

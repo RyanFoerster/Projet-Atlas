@@ -63,7 +63,7 @@ import { absoluteDateTime, bodyRegionLabel, movementLabel, relativeDate } from '
                     <tr class="border-b border-[var(--border-subtle)]">
                       <td class="py-2 px-2 font-mono text-body-sm text-[var(--text-tertiary)]">{{ i + 1 }}</td>
                       <td class="py-2 px-2 font-mono tabular-nums text-data text-[var(--text-secondary)] text-right">{{ set.reps }}</td>
-                      <td class="py-2 px-2 font-mono tabular-nums text-data text-[var(--text-primary)] text-right">{{ set.weightKg !== null ? set.weightKg + ' kg' : 'PdC' }}</td>
+                      <td class="py-2 px-2 font-mono tabular-nums text-data text-[var(--text-primary)] text-right">{{ set.loadType === 'BODYWEIGHT' ? 'PdC' : (set.loadType === 'WEIGHTED' ? '+' : '') + set.weightKg + ' kg' }}</td>
                       <td class="py-2 px-2 font-mono tabular-nums text-data text-[var(--text-secondary)] text-right">{{ set.rpe ?? '—' }}</td>
                     </tr>
                   }

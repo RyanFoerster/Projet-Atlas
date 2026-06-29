@@ -50,9 +50,13 @@ import static org.assertj.core.api.Assertions.within;
 /**
  * Test end-to-end de la boucle event-driven du sprint 4 (GATE 2) : PersonalTraining logge une séance →
  * publie {@code WorkoutLogged} → <strong>Athletics</strong> la consomme en async → la <em>forme</em>
- * (Banister) de l'athlète miroir évolue, un snapshot est créé, et les <strong>CurrentStats restent
- * inchangés</strong> (distinction court/long terme). Utilise l'API {@code Scenario} de Modulith (attente
- * de la consommation asynchrone).
+ * (Banister) de l'athlète miroir évolue, un snapshot est créé. Utilise l'API {@code Scenario} de Modulith
+ * (attente de la consommation asynchrone).
+ *
+ * <p><strong>Sprint 6, Couche 3</strong> : le 1RM ne reste plus « inchangé » — une séance le fait désormais
+ * <em>progresser</em> (ADR-033/032). La distinction court/long terme (forme yo-yote vs 1RM cliquet) est
+ * désormais portée par le <strong>gate conceptuel</strong> ({@code MirrorStructuralProgressionEventDrivenTest}),
+ * qui attend correctement la propagation jusqu'à Roster. Ce test-ci reste focalisé sur la <em>forme</em>.
  */
 @EnableScenarios
 class MirrorConditionEventDrivenTest extends AbstractIntegrationTest {
@@ -61,8 +65,11 @@ class MirrorConditionEventDrivenTest extends AbstractIntegrationTest {
     private static final Instant PERFORMED_AT = Instant.parse("2026-06-23T18:00:00Z");
     private static final AthleteGenerator GENERATOR = new ProceduralAthleteGenerator();
     // squat 5×1 @ RPE 8 + curl 12×1 sans RPE (effort neutre), magnitude dérivée de la formule (GATE 2).
+    // Squat 140 kg pour un 1RM de 140 → %1RM = 1.0 → loadFactor plafond (1.0). Curl = accessoire (pas de 1RM)
+    // → loadFactor plancher. La charge entre dans le stimulus (Couche 2, ADR-034).
     private static final double EXPECTED_STIMULUS = StimulusCalculator.NORMALIZATION
-            * (5 * StimulusCalculator.effortFactor(8.0) + 12 * StimulusCalculator.effortFactor(null));
+            * (5 * StimulusCalculator.effortFactor(8.0) * StimulusCalculator.loadFactor(140.0 / 140.0)
+            + 12 * StimulusCalculator.effortFactor(null) * StimulusCalculator.loadFactor(null));
 
     @Autowired
     private LogWorkoutUseCase logWorkout;
@@ -76,10 +83,9 @@ class MirrorConditionEventDrivenTest extends AbstractIntegrationTest {
     private ConditionSnapshotRepository snapshotRepository;
 
     @Test
-    void logging_a_workout_evolves_the_mirror_condition_while_current_stats_stay_unchanged(Scenario scenario) {
+    void logging_a_workout_evolves_the_mirror_form(Scenario scenario) {
         UserId owner = createOwnerWithMirror();
         AthleteId mirrorId = mirror(owner).id();
-        OneRepMax squatBefore = mirror(owner).currentOneRepMax(MovementPattern.SQUAT).orElseThrow();
 
         scenario.stimulate(() -> logWorkout.logWorkout(owner, command()))
                 .andWaitForStateChange(() -> conditionRepository.findByAthleteId(mirrorId).orElse(null))
@@ -108,10 +114,8 @@ class MirrorConditionEventDrivenTest extends AbstractIntegrationTest {
         assertThat(snapshots).hasSize(1);
         assertThat(snapshots.getFirst().takenAt()).isEqualTo(PERFORMED_AT);
         assertThat(snapshots.getFirst().performance()).isNegative();
-
-        // DISTINCTION COURT/LONG TERME : la forme a bougé, mais le 1RM structurel (CurrentStats) est intact.
-        OneRepMax squatAfter = mirror(owner).currentOneRepMax(MovementPattern.SQUAT).orElseThrow();
-        assertThat(squatAfter).isEqualTo(squatBefore);
+        // (La progression du 1RM déclenchée par cette séance est prouvée par le gate conceptuel, qui attend
+        //  la propagation jusqu'à Roster — ici on ne valide que la forme.)
     }
 
     private UserId createOwnerWithMirror() {
@@ -131,10 +135,10 @@ class MirrorConditionEventDrivenTest extends AbstractIntegrationTest {
     private static LogWorkoutCommand command() {
         LoggedExercise squat = new LoggedExercise(ExerciseName.of("Back Squat"),
                 ExerciseCategory.compound(MovementPattern.SQUAT),
-                List.of(new ExerciseSet(5, Weight.ofKilograms(140), RPE.of(8.0))));
+                List.of(ExerciseSet.external(5, Weight.ofKilograms(140), RPE.of(8.0))));
         LoggedExercise curl = new LoggedExercise(ExerciseName.of("Barbell Curl"),
                 ExerciseCategory.accessory(BodyRegion.BICEPS),
-                List.of(new ExerciseSet(12, Weight.ofKilograms(20), null)));
+                List.of(ExerciseSet.external(12, Weight.ofKilograms(20), null)));
         return new LogWorkoutCommand(PERFORMED_AT, 60, null, List.of(squat, curl));
     }
 

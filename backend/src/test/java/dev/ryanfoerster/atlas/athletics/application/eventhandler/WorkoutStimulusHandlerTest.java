@@ -7,9 +7,12 @@ import dev.ryanfoerster.atlas.athletics.domain.port.ConditionSnapshotRepository;
 import dev.ryanfoerster.atlas.athletics.domain.service.BanisterModel;
 import dev.ryanfoerster.atlas.athletics.domain.service.MuscleStimulusMapping;
 import dev.ryanfoerster.atlas.athletics.domain.service.StimulusCalculator;
+import dev.ryanfoerster.atlas.athletics.domain.service.StructuralProgressionModel;
 import dev.ryanfoerster.atlas.personaltraining.api.events.ExerciseSetSnapshot;
 import dev.ryanfoerster.atlas.personaltraining.api.events.LoggedExerciseSnapshot;
 import dev.ryanfoerster.atlas.personaltraining.api.events.WorkoutLogged;
+import dev.ryanfoerster.atlas.roster.api.AthleteLoadProfile;
+import dev.ryanfoerster.atlas.roster.api.AthleteStrengthCeiling;
 import dev.ryanfoerster.atlas.roster.api.GeneticProfile;
 import dev.ryanfoerster.atlas.roster.api.RosterQueryPort;
 import dev.ryanfoerster.atlas.shared.domain.AthleteId;
@@ -44,6 +47,12 @@ class WorkoutStimulusHandlerTest {
 
     private static final GeneticProfile NEUTRAL_PROFILE = new GeneticProfile(1.0, 1.0, 0.5);
 
+    // Profil de charge du miroir : bodyweight 80 kg, squat 1RM 175 kg → un squat à 140 kg externe = 80 % 1RM.
+    private static final double SQUAT_1RM_KG = 175.0;
+    private static final AthleteLoadProfile LOAD_PROFILE =
+            new AthleteLoadProfile(80.0, Map.of(MovementPattern.SQUAT, SQUAT_1RM_KG));
+    private static final double SQUAT_PERCENT = 140.0 / SQUAT_1RM_KG; // 0.80
+
     private WorkoutStimulusHandler handler(Optional<AthleteId> mirror) {
         return handler(mirror, NEUTRAL_PROFILE);
     }
@@ -59,22 +68,36 @@ class WorkoutStimulusHandlerTest {
             public Optional<GeneticProfile> findGeneticProfile(AthleteId athleteId) {
                 return mirror.map(id -> profile);
             }
+
+            @Override
+            public Optional<AthleteLoadProfile> findLoadProfile(AthleteId athleteId) {
+                return mirror.map(id -> LOAD_PROFILE);
+            }
+
+            @Override
+            public Optional<AthleteStrengthCeiling> findStrengthCeiling(AthleteId athleteId) {
+                return mirror.map(id -> AthleteStrengthCeiling.UNKNOWN); // Couche 2 : pas de progression structurelle ici
+            }
         };
         return new WorkoutStimulusHandler(rosterQuery, conditions, snapshots, new BanisterModel(),
-                new StimulusCalculator(), new MuscleStimulusMapping());
+                new StructuralProgressionModel(), new StimulusCalculator(), new MuscleStimulusMapping(),
+                event -> { /* publisher no-op : les events de progression sont testés en intégration */ });
     }
 
-    // Séance : squat 5×1 @ RPE 8 + curl 12×1 sans RPE (effort neutre). Magnitudes dérivées de la formule.
-    private static final double RAW_SQUAT = 5 * StimulusCalculator.effortFactor(8.0);
-    private static final double RAW_CURL = 12 * StimulusCalculator.effortFactor(null);
+    // Séance : squat 5 reps @80% 1RM RPE 8 (loadFactor élevé) + curl 12 reps sans RPE (accessoire → plancher).
+    // Magnitudes dérivées de la formule (reps × effort × load), robustes au recalibrage.
+    private static final double RAW_SQUAT =
+            5 * StimulusCalculator.effortFactor(8.0) * StimulusCalculator.loadFactor(SQUAT_PERCENT);
+    private static final double RAW_CURL =
+            12 * StimulusCalculator.effortFactor(null) * StimulusCalculator.loadFactor(null);
 
     private static WorkoutLogged event() {
         LoggedExerciseSnapshot squat = new LoggedExerciseSnapshot("Back Squat",
                 LoggedExerciseSnapshot.COMPOUND_FORCE, MovementPattern.SQUAT, null,
-                List.of(new ExerciseSetSnapshot(5, 140.0, 8.0)));
+                List.of(new ExerciseSetSnapshot(5, ExerciseSetSnapshot.EXTERNAL, 140.0, 8.0)));
         LoggedExerciseSnapshot curl = new LoggedExerciseSnapshot("Barbell Curl",
                 LoggedExerciseSnapshot.ACCESSORY, null, "BICEPS",
-                List.of(new ExerciseSetSnapshot(12, 20.0, null)));
+                List.of(new ExerciseSetSnapshot(12, ExerciseSetSnapshot.EXTERNAL, 20.0, null)));
         return new WorkoutLogged(OWNER, SESSION, PERFORMED_AT, 60, List.of(squat, curl));
     }
 
@@ -133,6 +156,25 @@ class WorkoutStimulusHandlerTest {
 
         assertThat(conditions.store.get(strong).state().totalFitness())
                 .isGreaterThan(conditions.store.get(weak).state().totalFitness());
+    }
+
+    @Test
+    void a_heavy_compound_out_stimulates_a_light_isolation_on_its_target_muscle() {
+        // Point d'ampleur résolu (ADR-034) : squat LOURD 5×5 @80% RPE8 vs curl LÉGER 3×12 RPE6.
+        // Par muscle : quads (du squat) doivent dépasser biceps (du curl léger), via loadFactor.
+        var squatSet = new ExerciseSetSnapshot(5, ExerciseSetSnapshot.EXTERNAL, 140.0, 8.0);
+        var squat = new LoggedExerciseSnapshot("Back Squat", LoggedExerciseSnapshot.COMPOUND_FORCE,
+                MovementPattern.SQUAT, null, List.of(squatSet, squatSet, squatSet, squatSet, squatSet));
+        var curlSet = new ExerciseSetSnapshot(12, ExerciseSetSnapshot.EXTERNAL, 15.0, 6.0);
+        var curl = new LoggedExerciseSnapshot("Barbell Curl", LoggedExerciseSnapshot.ACCESSORY,
+                null, "BICEPS", List.of(curlSet, curlSet, curlSet));
+        var heavyVsLight = new WorkoutLogged(OWNER, SESSION, PERFORMED_AT, 60, List.of(squat, curl));
+
+        handler(Optional.of(mirrorId)).on(heavyVsLight);
+
+        AthleteCondition condition = conditions.store.get(mirrorId);
+        assertThat(condition.state().condition(MuscleGroup.QUADS).fitness())
+                .isGreaterThan(condition.state().condition(MuscleGroup.BICEPS).fitness());
     }
 
     private static final class FakeConditionRepository implements AthleteConditionRepository {

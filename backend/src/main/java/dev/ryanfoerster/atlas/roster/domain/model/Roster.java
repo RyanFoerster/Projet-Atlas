@@ -4,6 +4,7 @@ import dev.ryanfoerster.atlas.roster.domain.model.exceptions.MirrorAlreadyExists
 import dev.ryanfoerster.atlas.roster.domain.service.AthleteGenerator;
 import dev.ryanfoerster.atlas.shared.domain.AthleteId;
 import dev.ryanfoerster.atlas.shared.domain.MovementPattern;
+import dev.ryanfoerster.atlas.shared.domain.OneRepMax;
 import dev.ryanfoerster.atlas.shared.domain.UserId;
 
 import java.time.Instant;
@@ -84,6 +85,19 @@ public final class Roster {
     public Roster recordMirrorWorkout(Instant performedAt, Set<MovementPattern> patternsCovered) {
         List<Athlete> next = athletes.stream()
                 .map(a -> a.isMirror() ? a.withWorkout(performedAt, patternsCovered) : a)
+                .toList();
+        return new Roster(id, ownerId, next, createdAt);
+    }
+
+    /**
+     * Matérialise une progression structurelle du 1RM sur l'athlète ciblé (event {@code CurrentStatsProgressed},
+     * ADR-032). Même forme que {@link #recordMirrorWorkout} : on remappe la liste, seul l'athlète d'identité
+     * {@code athleteId} mute (via {@code Athlete.progressOneRepMax}, cliquet/no-op si pas une hausse), les
+     * autres sont inchangés. Ce n'est pas réservé au miroir : un athlète virtuel progresse aussi.
+     */
+    public Roster progressAthleteStat(AthleteId athleteId, MovementPattern pattern, OneRepMax oneRepMax) {
+        List<Athlete> next = athletes.stream()
+                .map(a -> a.id().equals(athleteId) ? a.progressOneRepMax(pattern, oneRepMax) : a)
                 .toList();
         return new Roster(id, ownerId, next, createdAt);
     }

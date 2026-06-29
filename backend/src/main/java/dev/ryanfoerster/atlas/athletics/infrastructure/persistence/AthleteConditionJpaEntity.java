@@ -1,6 +1,7 @@
 package dev.ryanfoerster.atlas.athletics.infrastructure.persistence;
 
 import dev.ryanfoerster.atlas.athletics.infrastructure.persistence.json.MuscleConditionsJson;
+import dev.ryanfoerster.atlas.athletics.infrastructure.persistence.json.StructuralProgressJson;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -39,6 +40,12 @@ public class AthleteConditionJpaEntity {
 
     @Column(name = "stimulus_multiplier", nullable = false)
     private double stimulusMultiplier;
+
+    // Accumulateur de progression structurelle par pattern (sprint 6, Couche 3, ADR-033). jsonb, défaut
+    // {"byPattern":{}} pour les conditions créées avant V015 (athlètes des sprints 4/5).
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "structural_progress", nullable = false, columnDefinition = "jsonb")
+    private StructuralProgressJson structuralProgress;
 
     public AthleteConditionJpaEntity() {
     }
@@ -81,5 +88,13 @@ public class AthleteConditionJpaEntity {
 
     public void setStimulusMultiplier(double stimulusMultiplier) {
         this.stimulusMultiplier = stimulusMultiplier;
+    }
+
+    public StructuralProgressJson getStructuralProgress() {
+        return structuralProgress;
+    }
+
+    public void setStructuralProgress(StructuralProgressJson structuralProgress) {
+        this.structuralProgress = structuralProgress;
     }
 }

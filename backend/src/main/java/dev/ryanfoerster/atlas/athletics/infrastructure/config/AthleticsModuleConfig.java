@@ -3,6 +3,7 @@ package dev.ryanfoerster.atlas.athletics.infrastructure.config;
 import dev.ryanfoerster.atlas.athletics.domain.service.BanisterModel;
 import dev.ryanfoerster.atlas.athletics.domain.service.MuscleStimulusMapping;
 import dev.ryanfoerster.atlas.athletics.domain.service.StimulusCalculator;
+import dev.ryanfoerster.atlas.athletics.domain.service.StructuralProgressionModel;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -27,5 +28,10 @@ class AthleticsModuleConfig {
     @Bean
     MuscleStimulusMapping muscleStimulusMapping() {
         return new MuscleStimulusMapping();
+    }
+
+    @Bean
+    StructuralProgressionModel structuralProgressionModel() {
+        return new StructuralProgressionModel();
     }
 }

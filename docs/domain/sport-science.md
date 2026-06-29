@@ -2,24 +2,32 @@
 
 > Source de vérité **scientifique** du projet : ce que la littérature dit, ce qu'Atlas en retient, et — surtout — ce qu'Atlas **assume** là où la littérature s'arrête. Les *décisions* d'ingénierie correspondantes vivent dans les ADRs ; ce document explique la *science*.
 >
-> État : sprint 5 (Fitness-Fatigue **par groupe musculaire**, mapping stimulus sourcé, individualisation génétique). Le sprint 4 avait posé la stat globale. Sera enrichi au sprint 6 (progression structurelle des CurrentStats, charge absolue).
+> État : sprint 6 (le moteur est **complet**). Charge **%1RM** dans le stimulus (3ᵉ variable de dose) et **progression structurelle** du 1RM (montée lente quasi-irréversible vers un plafond génétique). S'ajoute à la forme par groupe musculaire des sprints 4–5. **Trois échelles de temps** coexistent désormais.
 
 ---
 
-## 1. Les deux temporalités de l'adaptation
+## 1. Les trois échelles de temps de l'adaptation
 
-Atlas modélise **deux** échelles de temps distinctes. Les confondre casserait la crédibilité du jeu.
+Atlas modélise **trois** dynamiques temporelles distinctes dans le même athlète. Les confondre — par exemple
+laisser un deload grignoter le 1RM — casserait la crédibilité du jeu. La règle d'or : **ne jamais re-mélanger
+ces horloges**.
 
-| | Fitness / Fatigue | CurrentStats |
-|---|---|---|
-| **Échelle** | jours → semaines (court terme) | mois → années (long terme) |
-| **Nature** | adaptation aiguë, affûtage neuromusculaire | capacités structurelles (1RM réel, masse musculaire) |
-| **Dynamique** | monte et **redescend** vite (surtout la fatigue) | se construit lentement, ne se perd **pas** vite |
-| **En deload** | la fitness **dip** (l'affûtage redescend) | **inchangé** |
-| **Sprint 4** | modélisé (Banister, global) | stable (lu, pas encore fait progresser → sprint 5) |
+| | Fatigue | Fitness (forme) | CurrentStats (1RM) |
+|---|---|---|---|
+| **Échelle** | jours (τ ≈ 7) | semaines (τ ≈ 42) | mois → années (**quasi-irréversible**) |
+| **Nature** | dette de récupération aiguë | affûtage neuromusculaire | capacités structurelles (1RM réel, masse) |
+| **Dynamique** | monte vite, descend vite | monte/descend lentement | se construit lentement, ne se perd **pas** vite |
+| **En deload** | s'efface vite (repos) | **dip** (l'affûtage redescend) | **inchangé** |
+| **Sprint 6** | modélisé (Banister) | modélisé (Banister) | **fait progresser** (cible convergente + cliquet) |
 
-La **performance exprimée un jour donné** = f(potentiel structurel, état de forme du moment). Au sprint 4
-on modélise l'état de forme (Banister) ; le potentiel structurel (`CurrentStats`) est posé mais stable.
+La **performance exprimée un jour donné** = f(potentiel structurel, état de forme du moment). Sprints 4–5 :
+l'état de forme (Banister, fatigue + fitness). Sprint 6 : le potentiel structurel (`CurrentStats`) se met
+enfin à **progresser**, à sa propre échelle de temps (τ_chronic ≈ 90 j), sans être contaminé par les deux
+autres.
+
+> **Preuve end-to-end** (test du gate conceptuel, Clock contrôlée) : 12 sem d'entraînement → squat 140 →
+> **144,72 kg** ; puis 6 sem de repos → fitness **1,264 → 0,465** (perte d'un facteur e sur une constante de
+> temps) **mais 1RM = 144,72 kg, exactement**. Un deload te rend rouillé, pas faible.
 
 ---
 
@@ -67,13 +75,16 @@ Allonger `τ_fitness` pour « adoucir » le dip brouillerait justement cette dis
 
 ## 3. De la séance au stimulus
 
-`S = NORMALIZATION × Σ_séries ( reps × effort(rpe) )`
+`S = NORMALIZATION × Σ_séries ( reps × effort(rpe) × load(%1RM) )`
 
-Atlas retient deux des trois variables de dose de la musculation :
+Atlas retient depuis le sprint 6 les **trois** variables de dose de la musculation :
 
 1. **Volume** (`reps`) — driver primaire de l'adaptation (Schoenfeld & Krieger).
 2. **Intensité d'effort** (`effort(rpe)`) — proximité de l'échec (Helms, RIR ; Nuckols, *stimulating reps*).
    RPE absent → effort **neutre** (RPE 7 supposé ; l'omission n'est ni récompensée ni pénalisée).
+3. **Intensité de charge** (`load(%1RM)`) — tension mécanique, proximité du 1RM (sprint 6, ADR-034). %1RM
+   absent (accessoire, ou composé sans 1RM de référence) → `load` au **plancher** (le travail léger compte
+   quand même, mais sans crédit de tension).
 
 ### `effort(rpe)` : seuil convexe doux `(rpe − 4) / 6` (sprint 5, ADR-031)
 
@@ -92,14 +103,31 @@ sans écraser les efforts modérés comme le ferait `(rpe/10)²`. Le seuil 4 est
 stimulus négligeable), pas un magic number. `NORMALIZATION` recalibrée 0.01 → 0.013 (la nouvelle formule
 réduit les magnitudes ~×0.78 ; l'échelle des courbes est préservée).
 
-La 3ᵉ variable, l'**intensité de charge (%1RM)**, reste **volontairement absente** : le RPE capture déjà
-l'intensité *relative à la capacité* (RPE 8 = 2 reps en réserve, quel que soit le poids absolu). La charge
-absolue arrive au **sprint 6** (et résoudra le déséquilibre composé/isolation, ci-dessous).
-
 > **Honnêteté épistémique.** Il n'existe **aucune valeur de littérature** pour convertir une séance de
 > force en impulsion de Banister (le modèle d'origine est endurance, impulsion = TRIMP cardiaque). Ce
 > mapping est un **choix de modélisation Atlas**, assumé comme « calibration par défaut, raffinée par
 > simulation ». Modéliser honnêtement là où la science s'arrête est ce qui rend le modèle défendable.
+
+### `load(%1RM)` : charge orthogonale à l'effort (sprint 6, ADR-034)
+
+`load(%1RM) = LOAD_FLOOR + (1 − LOAD_FLOOR) × clamp((%1RM − 0,30) / (0,90 − 0,30))`, avec **plancher 0,40**,
+montée linéaire entre **30 %** et **90 %** du 1RM, plafond à ≥ 90 % (tension maximale).
+
+| %1RM | < 30 % | 50 % | 70 % | 90 %+ | absent |
+|---|---|---|---|---|---|
+| `load` | 0,40 | 0,53 | 0,80 | 1,00 | 0,40 (plancher) |
+
+**Charge et effort sont orthogonaux.** `effort(rpe)` mesure la **proximité de l'échec** (reps en réserve),
+`load(%1RM)` la **tension mécanique** (proximité du 1RM). Ils se dissocient : un 5×5 à 70 % mené à RPE 9 est
+effort élevé / charge moyenne ; un single à 95 % à RPE 7 est l'inverse. Atlas les garde comme **deux facteurs
+distincts multipliés** — jamais fondus en un seul nombre. Le **plancher 0,40** évite d'annuler le travail
+léger haut-volume et donne sa valeur d'effort à un accessoire sans 1RM connu (crédit d'effort conservé, crédit
+de tension au plancher). Le %1RM se calcule `charge totale / 1RM du pattern`, le 1RM étant lu **frais** dans
+Roster à chaque séance (§8). `NORMALIZATION` recalibrée **0,013 → 0,014** (l'ajout de `load`, souvent < 1,
+abaisse les magnitudes ; l'échelle verticale est préservée).
+
+Cette 3ᵉ variable **résout le déséquilibre composé/isolation** laissé ouvert au sprint 5 : un squat à 140 kg
+porte une charge absolue qu'un curl à 20 kg n'a pas, et reprend son ascendant.
 
 ---
 
@@ -145,13 +173,12 @@ supination (génériques assumés). **Accessoires** (`BodyRegion`) : cible direc
 frictions assumées — `BACK` → BACK_UPPER 0.80 / BACK_LOWER 0.20 (plus grossier que le modèle), et `FOREARMS`
 → BICEPS 1.0 (pas de muscle avant-bras modélisé ; fléchisseurs adjacents).
 
-### ⚠️ Déséquilibre composé vs isolation (limite assumée sprint 6)
+### ✓ Déséquilibre composé vs isolation (résolu au sprint 6 par la charge)
 
-Avec somme = 1 et charge exclue, à reps/RPE égaux un **curl dépose plus sur ses biceps qu'un squat sur ses
-quads** (l'isolé concentre, le composé répartit). Ce qui rend un squat « plus gros » est la **charge** (140
-vs 20 kg), modélisée au sprint 6 — pas un facteur d'ampleur arbitraire ajouté maintenant. Par muscle, le
-poids < 1 du prime mover d'un composé capture aussi qu'il n'est pas pris aussi près de SON échec individuel
-qu'un isolé. Limite tracée, résolue naturellement par la charge.
+Avec somme = 1 et (jusqu'au sprint 5) charge exclue, à reps/RPE égaux un curl déposait plus sur ses biceps
+qu'un squat sur ses quads (l'isolé concentre, le composé répartit). Le sprint 6 le **résout comme prévu** :
+`load(%1RM)` (§3) donne au squat à 140 kg la charge absolue qu'un curl à 20 kg n'a pas — pas via un facteur
+d'ampleur arbitraire, mais via le vrai mécanisme (la tension). Limite tracée au sprint 5, **close** au sprint 6.
 
 ## 6. Individualisation génétique (sprint 5)
 
@@ -171,12 +198,61 @@ re-brouillerait la distinction court/long terme.
 
 ---
 
-## 7. À venir (sprint 6)
+## 7. Progression structurelle du 1RM (sprint 6)
 
-- **Progression structurelle des `CurrentStats`** : accumulateur de stimulus chronique → montée lente
-  quasi-irréversible du 1RM. Pilotée par les axes génétiques structurels (hypertrophie, affinité de force).
-- **Charge absolue / %1RM** dans le stimulus (résout le déséquilibre composé/isolation) + distinction
-  poids de corps / leste / charge externe.
+Le 1RM (`CurrentStats`) progresse vers un **plafond génétique** par une **cible convergente**, verrouillée
+par un **cliquet** (montée seulement). ADR-033.
+
+```
+mérité(C) = plafond − (plafond − départ) · exp(−C / SCALE)        SCALE = 20
+1RM = max(1RM, mérité)                                            (cliquet, n'émet que les hausses)
+plafond = poids_de_corps × ratio_ÉLITE(pattern, sexe) × strengthAffinity(pattern)
+```
+
+`C` est la **charge chronique** accumulée par pattern, qui décroît à **τ_chronic = 90 jours** (l'arrêt de
+l'entraînement **fige** la progression, ne la fait pas régresser — d'où le « quasi-irréversible » de la 3ᵉ
+échelle de temps). Le **plafond** individualise le potentiel : les `StrengthStandards` (ratios de force par
+lift/sexe, source Roster) donnent la bande, l'axe génétique **structurel** `strengthAffinity` (réservé au
+sprint 5) la module enfin — c'est sa place naturelle (long terme).
+
+### Comportements physiologiques **émergents** (non codés)
+
+Trois comportements bien connus **tombent** de cette forme convergente, sans aucun cas particulier :
+
+- **Newbie gains.** Loin du plafond, `exp` est raide → gros gains ; près du plafond, elle s'aplatit → gains
+  minuscules. Les **rendements décroissants émergent de l'écart au plafond**, pas d'un `if trainingAge`.
+  Calibration : débutant **+19 kg/12 sem**, avancé **+7 kg**, écart génétique **×2,3**, tous sous plafond.
+- **Plateau à volume constant = feature.** À charge fixe, `C` se stabilise (accumulation ≈ décroissance
+  τ=90 j) → `mérité` plafonne. Reproduit la **surcharge progressive** : il faut augmenter la charge pour
+  reprogresser. « Mon athlète stagne à 120 kg » est correct, pas un bug.
+- **Boucle d'auto-régulation.** Le 1RM↑ → la même charge absolue devient un **%1RM plus bas** → `load`↓ →
+  stimulus↓ → progression↓. *Negative feedback* émergent, **stable** en calibration (convergence, pas
+  d'emballement). Il n'est stable que parce que le 1RM est relu **frais** (§8).
+
+> **Scope assumé** (ADR-033 §5) : seuls les patterns ayant un 1RM de référence dans `CurrentStats` (les gros
+> lifts) progressent structurellement. ROW/CHIN_UP sans 1RM matérialisé ne progressent pas — **choix conscient**,
+> pas un oubli.
+
+## 8. Ownership et lectures inter-modules (sprint 6)
+
+Le 1RM **vit dans Roster** (identité de l'athlète, ADR-019), mais **Athletics porte le modèle** de
+progression. Résolution (ADR-032) : Athletics **émet** `CurrentStatsProgressed`, Roster **consomme**
+(copy-on-write). Le cycle `athletics ↔ roster` que cela crée est cassé en descendant **le seul contrat de
+l'event** dans `shared/events` — la **logique** (le `StructuralProgressionModel`, le cliquet) reste dans
+athletics.
+
+**Deux régimes de lecture** d'Athletics vers Roster, selon la mutabilité :
+
+- **Plafond génétique** (immuable, dérivé de la `Genetics`) → **lu une fois et dénormalisé** dans
+  l'accumulateur de progression.
+- **1RM courant** (mutable, il progresse) → **relu frais à chaque séance** pour le %1RM. Le mettre en cache
+  casserait l'auto-régulation : c'est précisément la donnée que la boucle fait bouger.
+
+## 9. À venir (sprint 7 — Insights)
+
+- **Courbes de progression** (les `ConditionSnapshot` append-only attendent depuis le sprint 4) et
+  **trajectoire 1RM → plafond**.
+- **Détail par muscle** (l'agrégation « maillon-faible » rouvrable y trouve sa place).
 - **`fiberTypeProfile`** possiblement réactivé si un levier distinct émerge.
 
 ---
@@ -188,4 +264,7 @@ re-brouillerait la distinction court/long terme.
 - Schoenfeld, B., Krieger, J. — méta-analyses dose-réponse (volume).
 - Helms, E. et al. — *The RPE Pyramid* (RPE/RIR).
 - Nuckols, G. — Stronger By Science (« stimulating reps », activation EMG, méta-analyses).
+- Zatsiorsky, V., Kraemer, W. — *Science and Practice of Strength Training* (adaptation aiguë vs structurelle).
+- McDonald, L. — *years of training* et gains de force attendus par niveau (forme convergente empirique).
+- Standards de force par lift/sexe (powerlifting) — bandes débutant→élite, base des `StrengthStandards`.
 - Bouchard, C. et al. — étude HERITAGE (variabilité inter-individuelle de la réponse à l'entraînement).

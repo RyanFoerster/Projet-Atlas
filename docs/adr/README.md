@@ -41,6 +41,15 @@ Voir `ADR-template.md` pour le squelette à dupliquer.
 | 024 | Pattern snapshot DTO pour les events publics + named interface (isolation) | Accepté (sprint 3) |
 | 025 | TrainingHistory sans compteur (option D) — source de vérité unique + idempotence | Accepté (sprint 3) |
 | 026 | Catégorisation des exercices loggés via sealed `ExerciseCategory` | Accepté (sprint 3) |
+| 027 | Module Athletics — AthleteCondition clé `AthleteId` | Accepté (sprint 4) |
+| 028 | Modèle Banister — formulation, constantes, calibration | Accepté (sprint 4) |
+| 029 | Granularité musculaire et agrégation | Accepté (sprint 5) |
+| 030 | Mapping stimulus pondéré et sourcé | Accepté (sprint 5) |
+| 031 | Individualisation génétique par convexité | Accepté (sprint 5) |
+| 032 | Ownership du 1RM par event + résolution du cycle athletics↔roster | Accepté (sprint 6) |
+| 033 | Progression structurelle du 1RM — cible convergente + cliquet | Accepté (sprint 6) |
+| 034 | La charge (%1RM) dans le stimulus, sans double comptage RPE | Accepté (sprint 6) |
+| 035 | Saisie de charge typée (poids de corps / lesté / externe) | Accepté (sprint 6) |
 
 ## Règles
 

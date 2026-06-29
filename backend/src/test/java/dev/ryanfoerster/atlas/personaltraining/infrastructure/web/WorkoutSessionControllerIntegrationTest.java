@@ -90,8 +90,72 @@ class WorkoutSessionControllerIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.exercises[1].category").value("ACCESSORY"))
                 .andExpect(jsonPath("$.exercises[1].region").value("BICEPS"))
                 .andExpect(jsonPath("$.exercises[1].sets[1].reps").value(12))  // série au poids de corps
+                // Compat : sans loadType en entrée, weightKg non-null → EXTERNAL, null → BODYWEIGHT (inférence).
+                .andExpect(jsonPath("$.exercises[0].sets[0].loadType").value("EXTERNAL"))
+                .andExpect(jsonPath("$.exercises[1].sets[1].loadType").value("BODYWEIGHT"))
                 .andReturn();
         System.out.println("=== POST 201 BODY ===\n" + result.getResponse().getContentAsString());
+    }
+
+    // Scénario du GATE couche 1 : une traction LESTÉE +40, un squat EXTERNE 140, un dips au POIDS DE CORPS.
+    private static final String THREE_LOAD_TYPES_PAYLOAD = """
+            {
+              "performedAt": "2026-06-23T18:30:00Z",
+              "exercises": [
+                {
+                  "name": "Weighted Pull-up",
+                  "pattern": "CHIN_UP",
+                  "sets": [ { "reps": 6, "loadType": "WEIGHTED", "weightKg": 40, "rpe": 8 } ]
+                },
+                {
+                  "name": "Back Squat",
+                  "pattern": "SQUAT",
+                  "sets": [ { "reps": 5, "loadType": "EXTERNAL", "weightKg": 140, "rpe": 8 } ]
+                },
+                {
+                  "name": "Dips",
+                  "region": "CHEST",
+                  "sets": [ { "reps": 12, "loadType": "BODYWEIGHT", "rpe": 7 } ]
+                }
+              ]
+            }
+            """;
+
+    @Test
+    void post_preserves_the_three_load_types_faithfully() throws Exception {
+        UserId owner = createUser();
+
+        MvcResult result = mockMvc.perform(post("/api/personal-training/sessions")
+                        .with(user(owner.toString())).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON).content(THREE_LOAD_TYPES_PAYLOAD))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.exercises[0].sets[0].loadType").value("WEIGHTED"))
+                .andExpect(jsonPath("$.exercises[0].sets[0].weightKg").value(40))   // charge AJOUTÉE
+                .andExpect(jsonPath("$.exercises[1].sets[0].loadType").value("EXTERNAL"))
+                .andExpect(jsonPath("$.exercises[1].sets[0].weightKg").value(140))
+                .andExpect(jsonPath("$.exercises[2].sets[0].loadType").value("BODYWEIGHT"))
+                .andExpect(jsonPath("$.exercises[2].sets[0].weightKg").doesNotExist())
+                .andReturn();
+        System.out.println("=== POST three load types BODY ===\n" + result.getResponse().getContentAsString());
+    }
+
+    @Test
+    void post_weighted_or_external_without_weight_returns_400() throws Exception {
+        UserId owner = createUser();
+        String payload = """
+                {
+                  "performedAt": "2026-06-23T18:30:00Z",
+                  "exercises": [
+                    { "name": "Weighted Pull-up", "pattern": "CHIN_UP",
+                      "sets": [ { "reps": 6, "loadType": "WEIGHTED", "rpe": 8 } ] }
+                  ]
+                }
+                """;
+        mockMvc.perform(post("/api/personal-training/sessions")
+                        .with(user(owner.toString())).with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON).content(payload))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").exists());
     }
 
     @Test

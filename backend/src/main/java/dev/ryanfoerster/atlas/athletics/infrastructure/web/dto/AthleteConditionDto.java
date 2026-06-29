@@ -1,8 +1,11 @@
 package dev.ryanfoerster.atlas.athletics.infrastructure.web.dto;
 
 import dev.ryanfoerster.atlas.athletics.application.query.GetAthleteConditionUseCase.CurrentCondition;
+import dev.ryanfoerster.atlas.shared.domain.MovementPattern;
 
 import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * DTO de la condition d'un athlète exposée à l'UI. En plus des valeurs brutes du modèle (échelle interne
@@ -22,7 +25,8 @@ public record AthleteConditionDto(
         double performance,
         int formIndex,
         String formState,
-        Instant asOf) {
+        Instant asOf,
+        Map<String, Double> baselineOneRmKgByPattern) {
 
     public static final String CUIT = "CUIT";
     public static final String FRAIS = "FRAIS";
@@ -37,7 +41,19 @@ public record AthleteConditionDto(
                 round2(condition.performance()),
                 index,
                 formState(index),
-                condition.asOf());
+                condition.asOf(),
+                toBaselineMap(condition.baselineOneRmKgByPattern()));
+    }
+
+    /**
+     * Baselines de progression structurelle (1RM de départ figé par pattern), clés = noms d'enum. Pleine
+     * précision (pas d'arrondi) : c'est le front qui calcule {@code delta = courant − baseline} puis arrondit
+     * le delta à 1 décimale. {@link LinkedHashMap} pour un ordre de sérialisation stable.
+     */
+    private static Map<String, Double> toBaselineMap(Map<MovementPattern, Double> baselines) {
+        Map<String, Double> json = new LinkedHashMap<>();
+        baselines.forEach((pattern, kg) -> json.put(pattern.name(), kg));
+        return json;
     }
 
     private static int formIndex(double fitness, double performance) {

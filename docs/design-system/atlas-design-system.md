@@ -510,6 +510,9 @@ Compose Card (4.3) + RarityBadge (4.8) + StatBlock (4.9).
 </div>
 ```
 - **Texte** `font-sans` (libellés, pas de chiffres) ; hauteur/bordure/focus **identiques à l'Input**.
+- **Tailles** : `default` (**h-10**, comme l'Input) et `compact` (**h-[34px]**, `pl-2.5 pr-8 text-[0.85rem]`) —
+  cette dernière pour les **lignes denses** (ex. le type de charge dans la `ExerciseSetRow` §4.13), alignée sur
+  la hauteur des cellules de la ligne.
 - **État erreur** : même langage que l'Input (bordure `--danger` + message).
 - **Cross-browser** : `appearance-none` + chevron overlay diverge entre Firefox/Chrome/Safari → **vérifier le
   rendu sur les trois** (la flèche native peut réapparaître si `appearance` incomplet).
@@ -536,16 +539,20 @@ qu'un dropdown — le choix devient un acte conscient. Usage canonique : type d'
 
 ### 4.13 ExerciseSetRow (module personaltraining)
 
-Sous-ligne d'une série dans le logger. Grille `reps · poids · rpe · supprimer`, **inputs numériques mono**
-(Input §4.2). Densité Football Manager.
+Sous-ligne d'une série dans le logger. Grille `reps · charge · poids · rpe · supprimer`
+(`grid-cols-[56px_140px_1fr_56px_28px]`), **inputs numériques mono** (Input §4.2) + un `Select` **compact**
+(§4.11) pour le type de charge. Densité Football Manager.
 
-- **Champs** : `reps` **requis** (1–100) ; `poids` **optionnel** — *vide = poids de corps* (gainage, traction) —
-  suffixe `kg` ; `rpe` **optionnel**, **1.0–10.0 par incréments de 0.5** (ex. 7.5, 8.5 — standard powerlifting,
-  aligné sur le VO `RPE` du domaine).
+- **Champs** : `reps` **requis** (1–100) ; **`charge`** = `Select` compact `Externe / Lesté / Poids de corps`
+  (**par série**, ADR-035 §6) ; `poids` adaptatif selon la charge — suffixe **`kg`** (externe), **`+kg`**
+  (lesté, = charge ajoutée), **désactivé + placeholder « Poids de corps »** (poids de corps) ; `rpe`
+  **optionnel**, **1.0–10.0 par incréments de 0.5** (standard powerlifting, aligné sur le VO `RPE`).
+- **Héritage** : une nouvelle série reprend le **type de charge et le poids** de la précédente (on choisit
+  « Lesté » une fois, ça se propage ; on passe la dernière série en « Poids de corps » d'un tap).
 - **États** : idle / focus (par champ) / error (bordure + message sous la grille, langage Input) / disabled (submit).
-- **Clavier (attendu des lifters)** : **Tab** parcourt reps→poids→rpe ; **Enter** sur la dernière série **ajoute
-  une série en dupliquant la dernière** (reps + poids gardés, **RPE vidé**) et place le focus sur ses reps.
-  Supprimer une série la retire (jamais sous 1 série/exercice).
+- **Clavier (attendu des lifters)** : **Tab** parcourt reps→charge→poids→rpe ; **Enter** sur la dernière série
+  **ajoute une série en dupliquant la dernière** (reps + poids + type de charge gardés, **RPE vidé**) et place le
+  focus sur ses reps. Supprimer une série la retire (jamais sous 1 série/exercice).
 
 ### 4.14 ExerciseLogRow (module personaltraining)
 
@@ -554,7 +561,7 @@ nature de chaque exercice **scannable d'un coup d'œil** dans une longue séance
 
 - **Anatomie** : en-tête = `SegmentedControl` (Composé/Accessoire) + `Input` nom (texte) + `Select`
   (MovementPattern **ou** BodyRegion selon le segment). Corps = mini en-tête de colonnes (caption
-  `reps · poids · rpe`) + liste de `ExerciseSetRow`. Pied = `+ ajouter une série` (lien discret) +
+  `reps · charge · poids · rpe`) + liste de `ExerciseSetRow`. Pied = `+ ajouter une série` (lien discret) +
   `supprimer l'exercice` (icône, à droite).
 - **Variantes** (pilotées par le segment) :
   - `compound` : liseré **bronze** (`--accent`), Select = **MovementPattern** (Squat, Développé couché…) → API `pattern` ;

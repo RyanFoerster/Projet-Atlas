@@ -29,4 +29,26 @@ public interface RosterQueryPort {
      * dénormalise les modificateurs dérivés — pas d'appel à chaque séance.
      */
     Optional<GeneticProfile> findGeneticProfile(AthleteId athleteId);
+
+    /**
+     * Le profil de <strong>charge</strong> d'un athlète (poids de corps + 1RM par pattern), pour calculer le
+     * %1RM d'une série (sprint 6, ADR-034). {@link Optional#empty()} si l'athlète n'existe pas.
+     *
+     * <p><strong>Contrairement à {@link #findGeneticProfile}, à relire FRAÎCHE à chaque séance</strong> : les
+     * 1RM sont <em>mutables</em> (ils progressent dès la Couche 3 du sprint 6), donc on ne dénormalise pas —
+     * sinon le %1RM se calculerait sur un 1RM périmé. « Ne pas dénormaliser ce qui change. »
+     */
+    Optional<AthleteLoadProfile> findLoadProfile(AthleteId athleteId);
+
+    /**
+     * Le <strong>plafond génétique</strong> de force d'un athlète, par pattern ({@code bodyweight ×
+     * ratio_élite × strengthAffinity}), pour borner la progression structurelle (Couche 3, ADR-033).
+     * {@link Optional#empty()} si l'athlète n'existe pas. Roster calcule le plafond (il possède les standards
+     * de force et la génétique), Athletics le lit (T3) — sans jamais connaître les ratios élite.
+     *
+     * <p><strong>Immutable → dénormalisable</strong> (à l'opposé de {@link #findLoadProfile}) : la génétique
+     * et le poids de corps ne bougent pas, donc Athletics le lit <em>une fois à l'initialisation</em> d'un
+     * pattern, pas à chaque séance. On dénormalise ce qui ne change pas, on lit frais ce qui change (T5).
+     */
+    Optional<AthleteStrengthCeiling> findStrengthCeiling(AthleteId athleteId);
 }

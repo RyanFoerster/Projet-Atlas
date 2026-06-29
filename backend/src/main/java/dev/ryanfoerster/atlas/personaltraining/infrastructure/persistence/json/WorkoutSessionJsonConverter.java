@@ -5,12 +5,14 @@ import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseCategory.Acc
 import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseCategory.CompoundForce;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseName;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseSet;
+import dev.ryanfoerster.atlas.personaltraining.domain.model.Load;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.LoggedExercise;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.RPE;
 import dev.ryanfoerster.atlas.shared.domain.BodyRegion;
 import dev.ryanfoerster.atlas.shared.domain.MovementPattern;
 import dev.ryanfoerster.atlas.shared.domain.Weight;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -22,6 +24,10 @@ public final class WorkoutSessionJsonConverter {
 
     static final String COMPOUND_FORCE = "COMPOUND_FORCE";
     static final String ACCESSORY = "ACCESSORY";
+
+    static final String BODYWEIGHT = "BODYWEIGHT";
+    static final String WEIGHTED = "WEIGHTED";
+    static final String EXTERNAL = "EXTERNAL";
 
     private WorkoutSessionJsonConverter() {
     }
@@ -65,15 +71,43 @@ public final class WorkoutSessionJsonConverter {
     }
 
     private static ExerciseSetJson toJson(ExerciseSet set) {
-        return new ExerciseSetJson(
-                set.reps(),
-                set.weight() == null ? null : set.weight().toKilograms(),
-                set.rpe() == null ? null : set.rpe().value());
+        String loadType;
+        BigDecimal weightKg = null;
+        switch (set.load()) {
+            case Load.Bodyweight ignored -> loadType = BODYWEIGHT;
+            case Load.Weighted w -> {
+                loadType = WEIGHTED;
+                weightKg = w.added().toKilograms();
+            }
+            case Load.External e -> {
+                loadType = EXTERNAL;
+                weightKg = e.weight().toKilograms();
+            }
+        }
+        return new ExerciseSetJson(set.reps(), loadType, weightKg, set.rpe() == null ? null : set.rpe().value());
     }
 
     private static ExerciseSet fromJson(ExerciseSetJson json) {
-        Weight weight = json.weightKg() == null ? null : Weight.ofKilograms(json.weightKg());
         RPE rpe = json.rpe() == null ? null : RPE.of(json.rpe());
-        return new ExerciseSet(json.reps(), weight, rpe);
+        return new ExerciseSet(json.reps(), toLoad(json), rpe);
+    }
+
+    /**
+     * <strong>Lecteur tolérant</strong> (expand/contract, ADR-035). Une série antérieure au sprint 6 n'a
+     * pas de {@code loadType} en base : on l'infère avec la règle legacy (la même que la migration V014 et
+     * le mapper entrant — {@code weightKg} null → poids de corps, sinon externe) plutôt que de planter tout
+     * l'historique. Le {@code default -> throw} reste réservé à une vraie valeur inconnue (corruption).
+     */
+    private static Load toLoad(ExerciseSetJson json) {
+        if (json.loadType() == null) {
+            return json.weightKg() == null ? Load.bodyweight() : Load.external(Weight.ofKilograms(json.weightKg()));
+        }
+        return switch (json.loadType()) {
+            case BODYWEIGHT -> Load.bodyweight();
+            case WEIGHTED -> Load.weighted(Weight.ofKilograms(json.weightKg()));
+            case EXTERNAL -> Load.external(Weight.ofKilograms(json.weightKg()));
+            default -> throw new IllegalStateException(
+                    "loadType inconnu en base : " + json.loadType()); // corruption de données → 500
+        };
     }
 }

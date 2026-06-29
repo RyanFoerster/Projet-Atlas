@@ -77,18 +77,18 @@ class MirrorConditionAccumulationTest extends AbstractIntegrationTest {
         logWorkout.logWorkout(owner, new LogWorkoutCommand(SESSION_1_AT, 60, null, List.of(
                 new LoggedExercise(ExerciseName.of("Back Squat"),
                         ExerciseCategory.compound(MovementPattern.SQUAT),
-                        List.of(new ExerciseSet(5, Weight.ofKilograms(140), RPE.of(8.0)),
-                                new ExerciseSet(5, Weight.ofKilograms(140), RPE.of(8.0)),
-                                new ExerciseSet(5, Weight.ofKilograms(140), RPE.of(8.0)),
-                                new ExerciseSet(5, Weight.ofKilograms(140), RPE.of(8.0)),
-                                new ExerciseSet(5, Weight.ofKilograms(140), RPE.of(8.0)))))));
+                        List.of(ExerciseSet.external(5, Weight.ofKilograms(140), RPE.of(8.0)),
+                                ExerciseSet.external(5, Weight.ofKilograms(140), RPE.of(8.0)),
+                                ExerciseSet.external(5, Weight.ofKilograms(140), RPE.of(8.0)),
+                                ExerciseSet.external(5, Weight.ofKilograms(140), RPE.of(8.0)),
+                                ExerciseSet.external(5, Weight.ofKilograms(140), RPE.of(8.0)))))));
         await().atMost(Duration.ofSeconds(10)).until(() -> SESSION_1_AT.equals(lastUpdated(mirrorId)));
 
         // Séance 2 (J0) : petite séance (traction 1×10 @ RPE 8), comme le scénario manuel.
         logWorkout.logWorkout(owner, new LogWorkoutCommand(SESSION_2_AT, 20, null, List.of(
                 new LoggedExercise(ExerciseName.of("Pull-up"),
                         ExerciseCategory.compound(MovementPattern.CHIN_UP),
-                        List.of(new ExerciseSet(10, Weight.ofKilograms(80), RPE.of(8.0)))))));
+                        List.of(ExerciseSet.external(10, Weight.ofKilograms(80), RPE.of(8.0)))))));
         await().atMost(Duration.ofSeconds(10)).until(() -> SESSION_2_AT.equals(lastUpdated(mirrorId)));
 
         AthleteCondition condition = conditionRepository.findByAthleteId(mirrorId).orElseThrow();
@@ -111,7 +111,7 @@ class MirrorConditionAccumulationTest extends AbstractIntegrationTest {
         logAndAwait(owner, mirrorId, new LogWorkoutCommand(SESSION_2_AT, 20, null, List.of(
                 new LoggedExercise(ExerciseName.of("Pull-up"),
                         ExerciseCategory.compound(MovementPattern.CHIN_UP),
-                        List.of(new ExerciseSet(10, Weight.ofKilograms(80), RPE.of(8.0)))))));
+                        List.of(ExerciseSet.external(10, Weight.ofKilograms(80), RPE.of(8.0)))))));
 
         AthleteCondition condition = conditionRepository.findByAthleteId(mirrorId).orElseThrow();
         assertThat(condition.state().totalFitness()).isGreaterThan(condition.state().totalFatigue());
@@ -125,7 +125,7 @@ class MirrorConditionAccumulationTest extends AbstractIntegrationTest {
     private static LogWorkoutCommand squatSession(Instant at, int sets) {
         List<ExerciseSet> setList = new ArrayList<>();
         for (int i = 0; i < sets; i++) {
-            setList.add(new ExerciseSet(5, Weight.ofKilograms(140), RPE.of(8.0)));
+            setList.add(ExerciseSet.external(5, Weight.ofKilograms(140), RPE.of(8.0)));
         }
         return new LogWorkoutCommand(at, 60, null, List.of(
                 new LoggedExercise(ExerciseName.of("Back Squat"),

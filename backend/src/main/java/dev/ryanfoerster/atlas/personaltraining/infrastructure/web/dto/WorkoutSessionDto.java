@@ -3,6 +3,7 @@ package dev.ryanfoerster.atlas.personaltraining.infrastructure.web.dto;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseCategory.Accessory;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseCategory.CompoundForce;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.ExerciseSet;
+import dev.ryanfoerster.atlas.personaltraining.domain.model.Load;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.LoggedExercise;
 import dev.ryanfoerster.atlas.personaltraining.domain.model.WorkoutSession;
 import dev.ryanfoerster.atlas.shared.domain.MovementPattern;
@@ -62,13 +63,24 @@ public record WorkoutSessionDto(
         }
     }
 
-    public record SetDto(int reps, BigDecimal weightKg, Double rpe) {
+    /** Une série : le sealed {@code Load} est aplati en {@code loadType} + {@code weightKg} (ADR-035). */
+    public record SetDto(int reps, String loadType, BigDecimal weightKg, Double rpe) {
 
         static SetDto from(ExerciseSet set) {
-            return new SetDto(
-                    set.reps(),
-                    set.weight() == null ? null : set.weight().toKilograms(),
-                    set.rpe() == null ? null : set.rpe().value());
+            String loadType;
+            BigDecimal weightKg = null;
+            switch (set.load()) {
+                case Load.Bodyweight ignored -> loadType = "BODYWEIGHT";
+                case Load.Weighted w -> {
+                    loadType = "WEIGHTED";
+                    weightKg = w.added().toKilograms();
+                }
+                case Load.External e -> {
+                    loadType = "EXTERNAL";
+                    weightKg = e.weight().toKilograms();
+                }
+            }
+            return new SetDto(set.reps(), loadType, weightKg, set.rpe() == null ? null : set.rpe().value());
         }
     }
 }

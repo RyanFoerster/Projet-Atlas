@@ -5,7 +5,8 @@ export type ExerciseCategoryType = 'COMPOUND_FORCE' | 'ACCESSORY';
 // ---- Requête : POST /api/personal-training/sessions ----
 export interface SetInput {
   reps: number;
-  weightKg: number | null; // null = poids de corps
+  loadType: string; // BODYWEIGHT | WEIGHTED | EXTERNAL (ADR-035)
+  weightKg: number | null; // charge ajoutée (WEIGHTED) / externe (EXTERNAL) ; null = poids de corps
   rpe: number | null; // null = non renseigné
 }
 
@@ -26,6 +27,7 @@ export interface LogWorkoutRequest {
 // ---- Réponse détail : WorkoutSessionDto ----
 export interface SetDetail {
   reps: number;
+  loadType: string; // BODYWEIGHT | WEIGHTED | EXTERNAL
   weightKg: number | null;
   rpe: number | null;
 }

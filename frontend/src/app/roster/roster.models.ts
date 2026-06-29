@@ -48,6 +48,8 @@ export interface AthleteCondition {
   formIndex: number;
   formState: FormState;
   asOf: string;
+  /** 1RM de départ figé par pattern (Couche 3) — pour le delta cumulé `courant − baseline`. Vide si jamais entraîné. */
+  baselineOneRmKgByPattern: Record<string, number>;
 }
 
 export interface AthleteSummary {

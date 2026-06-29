@@ -5,6 +5,7 @@ import dev.ryanfoerster.atlas.athletics.domain.model.AthleteCondition;
 import dev.ryanfoerster.atlas.athletics.domain.model.FitnessFatigueState;
 import dev.ryanfoerster.atlas.athletics.domain.model.GeneticModifiers;
 import dev.ryanfoerster.atlas.athletics.domain.model.MuscleCondition;
+import dev.ryanfoerster.atlas.athletics.domain.model.StructuralProgress;
 import dev.ryanfoerster.atlas.athletics.domain.port.AthleteConditionRepository;
 import dev.ryanfoerster.atlas.identity.domain.model.DisplayName;
 import dev.ryanfoerster.atlas.identity.domain.model.Email;
@@ -81,7 +82,7 @@ class AthleteConditionControllerIntegrationTest extends AbstractIntegrationTest 
         // déterministe quel que soit le « maintenant » de lecture (lazy compute).
         conditionRepository.save(AthleteCondition.reconstitute(mirrorId, new FitnessFatigueState(
                 Map.of(MuscleGroup.QUADS, new MuscleCondition(20.0, 0.0)),
-                Instant.parse("2026-01-01T00:00:00Z")), GeneticModifiers.NEUTRAL));
+                Instant.parse("2026-01-01T00:00:00Z")), GeneticModifiers.NEUTRAL, StructuralProgress.EMPTY));
 
         mockMvc.perform(get("/api/athletes/" + mirrorId + "/condition").with(user(owner.toString())))
                 .andExpect(status().isOk())

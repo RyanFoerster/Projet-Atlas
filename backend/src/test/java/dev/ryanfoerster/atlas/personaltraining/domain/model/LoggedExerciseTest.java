@@ -19,8 +19,8 @@ class LoggedExerciseTest {
     @Test
     void aggregates_sets_reps_and_volume() {
         LoggedExercise exercise = new LoggedExercise(ExerciseName.of("Back Squat"), SQUAT, List.of(
-                new ExerciseSet(5, Weight.ofKilograms(100), null),
-                new ExerciseSet(5, Weight.ofKilograms(100), null)));
+                ExerciseSet.external(5, Weight.ofKilograms(100), null),
+                ExerciseSet.external(5, Weight.ofKilograms(100), null)));
 
         assertThat(exercise.totalSets()).isEqualTo(2);
         assertThat(exercise.totalReps()).isEqualTo(10);
@@ -36,10 +36,10 @@ class LoggedExerciseTest {
     @Test
     void copies_the_sets_defensively() {
         List<ExerciseSet> mutable = new ArrayList<>();
-        mutable.add(new ExerciseSet(5, Weight.ofKilograms(100), null));
+        mutable.add(ExerciseSet.external(5, Weight.ofKilograms(100), null));
 
         LoggedExercise exercise = new LoggedExercise(ExerciseName.of("Squat"), SQUAT, mutable);
-        mutable.add(new ExerciseSet(5, Weight.ofKilograms(100), null)); // mutation après construction
+        mutable.add(ExerciseSet.external(5, Weight.ofKilograms(100), null)); // mutation après construction
 
         assertThat(exercise.totalSets()).isEqualTo(1); // l'exercice n'a pas bougé
     }

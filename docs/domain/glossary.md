@@ -90,7 +90,13 @@ Value object riche d'un exercice loggé dans une `WorkoutSession` (personaltrain
 Un exercice spécifique réalisé dans un Workout. Ex : "Squat barre dos", "Bench press incliné", "Tirage horizontal". Chaque Exercise est mappé à un ou plusieurs `MovementPattern` et à un set de `MuscleGroup` impactés, avec des coefficients de pondération.
 
 ### Set
-Une série dans un Exercise. Composée d'un nombre de répétitions, d'un poids (`Weight`), et optionnellement d'un `RPE`.
+Une série dans un Exercise. Composée d'un nombre de répétitions, d'un `Load` (type de charge), et optionnellement d'un `RPE`.
+
+### Load
+**Sealed interface** (module `personaltraining`, sprint 6, ADR-035) : le type de charge d'une série, qui rend les états illégaux irreprésentables. Trois cas : `Bodyweight` (poids de corps pur — traction, dips, sans valeur), `Weighted(added)` (lesté = poids de corps + charge ajoutée), `External(weight)` (charge externe seule — barre, poulie). Préféré à un `enum + Weight nullable` (qui peut se désynchroniser : un `BODYWEIGHT` avec valeur, un `EXTERNAL` sans) — le type fermé interdit ces états à la compilation et permet un `switch` exhaustif aux frontières. **Frontière de responsabilité** : PersonalTraining ne calcule **pas** la charge totale déplacée (le poids de corps vit dans Roster) ; il logge fidèlement la saisie. La résolution « charge totale » et le %1RM sont faits côté Athletics.
+
+### LoadType
+Le **discriminant** de `Load` tel qu'il traverse les frontières techniques (event, JSON, colonne, DTO) : `BODYWEIGHT` / `WEIGHTED` / `EXTERNAL`. Persisté en JSONB sur la série (migration `V013` + backfill `V014`). Inféré pour le legacy : `weightKg` null → `BODYWEIGHT`, non-null → `EXTERNAL`.
 
 ### MovementPattern
 Énumération des patterns moteurs principaux : `SQUAT`, `BENCH_PRESS`, `DEADLIFT`, `OVERHEAD_PRESS`, `ROW`, `CHIN_UP`. Chaque exercice est mappé à un MovementPattern principal (et parfois secondaires).
@@ -114,13 +120,16 @@ Value object représentant un 1RM. Précise s'il est `MEASURED` (testé en vrai)
 
 ## Modèle Fitness-Fatigue
 
-> **État sprint 5** : modèle de Banister **par groupe musculaire**, distribué par un **mapping pondéré sourcé** et **individualisé par la génétique**. Le sprint 4 avait posé la stat globale. La progression structurelle des CurrentStats part au **sprint 6** (ADR-004).
+> **État sprint 6** : modèle de Banister **par groupe musculaire**, distribué par un **mapping pondéré sourcé**, **individualisé par la génétique**, et désormais doté de la **charge (%1RM)** dans la dose (ADR-034). La **progression structurelle** du 1RM (cible convergente + cliquet) ferme le moteur (ADR-032/033). Le sprint 4 avait posé la stat globale.
 
 ### TrainingStimulus
-Value object : l'impulsion qu'une séance inflige à un muscle. Magnitude scalaire (`Σ reps × effort(rpe)` × `NORM`, charge absolue exclue — ADR-028), **distribuée par `MuscleGroup`** via le `MuscleStimulusMapping` (sprint 5). Input du `BanisterModel`.
+Value object : l'impulsion qu'une séance inflige à un muscle. Magnitude scalaire (`Σ reps × effort(rpe) × load(%1RM)` × `NORM`, sprint 6 — la charge **entre** dans la dose, ADR-034), **distribuée par `MuscleGroup`** via le `MuscleStimulusMapping`. Input du `BanisterModel`.
 
 ### StimulusCalculator
-Domain service stateless : `from(sets)` calcule la magnitude d'un bloc de séries ; `distribute(exercises, mapping)` la répartit sur les muscles (`Map<MuscleGroup, TrainingStimulus>`). `S = NORM × Σ reps × effort(rpe)`, `effort(rpe) = clamp((rpe−4)/6)` (seuil convexe doux, sprint 5, ADR-031), RPE absent → RPE 7 (0.5, neutre), `NORM = 0.013`. Le mapping séance→impulsion **n'a pas de littérature** → calibration Atlas assumée (ADR-028).
+Domain service stateless : `from(sets)` calcule la magnitude d'un bloc de séries ; `distribute(...)` / `byPattern(...)` la répartit sur les muscles / les patterns composés. `S = NORM × Σ reps × effort(rpe) × load(%1RM)`. `effort(rpe) = clamp((rpe−4)/6)` (proximité de l'échec, sprint 5, ADR-031, RPE absent → RPE 7 = 0.5). `load(%1RM) = 0.40 + 0.60 × clamp((%1RM−0.30)/0.60)` (tension mécanique, sprint 6, ADR-034, plancher **0.40** si %1RM absent). `NORM = 0.014` (recalibré sprint 6). Les deux facteurs sont **orthogonaux** (effort ≠ charge). Le mapping séance→impulsion **n'a pas de littérature** → calibration Atlas assumée (ADR-028).
+
+### SetEffort
+Value object d'entrée du calcul de stimulus (athletics) : une série réduite à ses **trois dimensions de dose** — `reps` (volume), `rpe` (effort, nullable → neutre), `percentOneRepMax` (charge, nullable → `loadFactor` au plancher). Les nullables encodent l'**orthogonalité** : un accessoire sans 1RM garde son crédit d'effort, perd son crédit de tension. Le %1RM = `charge totale / 1RM du pattern`, résolu par le handler (saisie `Load` + bodyweight + 1RM lu frais).
 
 ### ExerciseStimulus
 Value object d'entrée du calcul : un exercice loggé réduit à sa **cible** (`MovementPattern` composé **ou** `BodyRegion` accessoire) et ses séries. Forme domaine de `LoggedExerciseSnapshot` (le handler traduit le nom de région de l'event en `BodyRegion` à sa frontière).
@@ -171,10 +180,25 @@ On ne tick jamais les athlètes (pas de scheduler, ADR-006) : l'état stocké `(
 Point daté `(fitness, fatigue, performance)` capturé **à chaque séance appliquée** (append-only). Alimentera les **courbes du sprint 7** (Insights). `performance` peut être négative (athlète « cuit »).
 
 ### CurrentStats
-Value object porté par l'Athlete (module **roster**), capacités **structurelles** long terme : 1RM par MovementPattern (`OneRepMax`). **Sprints 4–5** : stables — Athletics ne les touche pas, un deload baisse la fitness mais PAS le 1RM (la distinction court/long terme, cœur des sprints 4–5). **Sprint 6** : leur progression (montée lente quasi-irréversible) sera pilotée par Athletics, avec arbitrage d'ownership (elles vivent dans Roster).
+Value object porté par l'Athlete (module **roster**), capacités **structurelles** long terme : 1RM par MovementPattern (`OneRepMax`). **3ᵉ échelle de temps** (mois → années, quasi-irréversible). **Sprints 4–5** : stables — un deload baisse la fitness mais PAS le 1RM. **Sprint 6** : **progressent** (montée lente vers un plafond génétique, cliquet monotone), pilotés par Athletics via event `CurrentStatsProgressed` (ownership ADR-032). Méthode `with(pattern, oneRepMax)` pour la mise à jour copy-on-write.
 
-### AdaptationCalculator
-Domain service **prévu sprint 6** : progression long terme des CurrentStats sous stimulus chronique, pilotée par les axes génétiques **structurels** (hypertrophie, affinité de force). Pas encore implémenté.
+### StructuralProgressionModel
+Domain service pur (athletics, sprint 6, ADR-033) : fait progresser le 1RM vers un **plafond génétique** par une **cible convergente** + **cliquet**. `mérité(C) = plafond − (plafond − départ)·exp(−C/SCALE)` (`SCALE=20`) ; `chronicLoad` accumule le stimulus et décroît à `τ_chronic = 90 j` ; **n'émet que les hausses** (`mérité > courant` → cliquet monotone). Les **rendements décroissants** et le **plateau** y sont **émergents** (l'écart au plafond pilote tout), non codés. Remplace l'`AdaptationCalculator` qui était prévu.
+
+### StructuralProgression
+État d'accumulation de la progression structurelle (athletics). `StructuralProgress` = `Map<MovementPattern, PatternProgress>` (sparse, persisté en JSONB sur `AthleteCondition`). `PatternProgress(startOneRmKg, ceilingOneRmKg, chronicLoad)` : le 1RM **de départ figé** (baseline pour le delta cumulé), le **plafond génétique** dénormalisé (immuable, lu une fois), et la **charge chronique** accumulée. Distinct du 1RM **matérialisé** (qui vit dans Roster).
+
+### StrengthStandards
+Domain service (module **roster**, sprint 6) : **source de vérité** des ratios de force par lift et par sexe (bandes débutant → élite, ex. squat homme 1,5 → 2,3 × poids de corps ; femmes ×0,65–0,75). Sert au calcul du **plafond génétique** (`ratio_ÉLITE`) et à la procgen des candidats. Centralise des constantes auparavant dupliquées dans le générateur.
+
+### Ceiling génétique (plafond)
+Le **potentiel de 1RM** d'un athlète pour un pattern : `poids_de_corps × ratio_ÉLITE(pattern, sexe) × strengthAffinity(pattern)`. **Immuable** (dérivé de la `Genetics`) → lu une fois côté Athletics (`RosterQueryPort.findStrengthCeiling`) et **dénormalisé** dans `PatternProgress`. C'est là que l'axe génétique **structurel** `strengthAffinity` (réservé au sprint 5) pilote enfin la simulation. La progression converge vers ce plafond sans l'atteindre.
+
+### CurrentStatsProgressed
+**Event de domaine** (record dans `shared/events` — pas dans `athletics/api`) : `(athleteId, pattern, newOneRepMaxKg, progressedAt)`. Émis par Athletics quand le 1RM mérité dépasse le courant (cliquet), consommé par Roster (`CurrentStatsProgressedHandler` → `Roster.progressAthleteStat`, copy-on-write). **Vit dans `shared`** pour **casser le cycle** `athletics ↔ roster` : seul le *contrat* descend dans le kernel, la *logique* reste dans athletics (ADR-032).
+
+### Delta cumulé (1RM)
+Concept de **présentation** (frontend, sprint 6) : `courant − baseline`, où `baseline` = le 1RM de départ figé (`PatternProgress.startOneRmKg`, exposé sur le read Athletics). Rend la progression lente **perceptible** dès la 1ʳᵉ séance. Règle **calcul ≠ affichage** : le 1RM est stocké en **pleine précision** (sinon un gain `< 0,5 kg` serait perdu et le 1RM ne monterait jamais visiblement) et **arrondi seulement à l'affichage** — jalon **entier** (« 103 kg ») + delta à **1 décimale** (« +3,0 kg »). Toujours positif (cliquet).
 
 ### InterferencePolicy
 Domain policy qui modélise l'interférence aérobie-force (concurrent training effect). Si un cardio long suit un entraînement de force dans une fenêtre courte, les gains de force sont réduits de 20-30%.

@@ -109,4 +109,23 @@ class RosterTest {
 
         assertThat(updated.size()).isZero();
     }
+
+    @Test
+    void progressing_a_stat_targets_only_the_named_athlete() {
+        Roster roster = Roster.createFor(owner, NOW)
+                .addMirror(mirrorRequest(), generator, 42L, NOW)
+                .recruit(generator.generateCandidate(99L, Rarity.SPECIALIST), NOW);
+        var mirrorId = roster.mirrorAthlete().orElseThrow().id();
+        var virtualBefore = roster.virtualAthletes().getFirst();
+
+        Roster updated = roster.progressAthleteStat(mirrorId, MovementPattern.SQUAT,
+                OneRepMax.measured(Weight.ofKilograms(150)));
+
+        assertThat(updated.findAthlete(mirrorId).orElseThrow()
+                .currentOneRepMax(MovementPattern.SQUAT).orElseThrow().weight().toKilograms().doubleValue())
+                .isEqualTo(150.0);
+        // L'athlète virtuel n'a pas bougé.
+        assertThat(updated.virtualAthletes().getFirst().currentStats())
+                .isEqualTo(virtualBefore.currentStats());
+    }
 }

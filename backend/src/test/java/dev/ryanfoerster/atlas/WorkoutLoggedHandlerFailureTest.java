@@ -112,7 +112,7 @@ class WorkoutLoggedHandlerFailureTest extends AbstractIntegrationTest {
     private static LogWorkoutCommand command() {
         LoggedExercise squat = new LoggedExercise(ExerciseName.of("Back Squat"),
                 ExerciseCategory.compound(MovementPattern.SQUAT),
-                List.of(new ExerciseSet(5, Weight.ofKilograms(140), RPE.of(8.0))));
+                List.of(ExerciseSet.external(5, Weight.ofKilograms(140), RPE.of(8.0))));
         return new LogWorkoutCommand(PERFORMED_AT, 60, null, List.of(squat));
     }
 
